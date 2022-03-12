@@ -7,8 +7,8 @@ const mainRouter = require("./routes/mainRouter");
 
 dotenv.config();
 
-const PORT = process.env.APP_PORT ?? 5000
-const URL = process.env.APP_URL ?? 'http://127.0.0.1'
+const PORT = process.env.PORT ?? 80
+const URL = process.env.URL ?? 'http://127.0.0.1'
 const NODE_ENV = process.env.NODE_ENV ?? 'development'
 const app = express()
 

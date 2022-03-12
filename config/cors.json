@@ -1,8 +1,8 @@
 {
   "development": {
-    "allowList": ["http://localhost:3000"]
+    "allowList": ["*"]
   },
   "production": {
-    "allowList": ["http://localhost:3000"]
+    "allowList": ["*"]
   }
 }

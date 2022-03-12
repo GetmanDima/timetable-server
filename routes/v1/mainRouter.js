@@ -13,9 +13,9 @@ const eventRouter = require("./eventRouter");
 const materialRouter = require("./materialRouter");
 const classTimeRouter = require("./classTimeRouter");
 const timetableDayRouter = require("./timetableDayRouter");
-const campusRouter = require("./CampusRouter");
-const teacherRouter = require("./TeacherRouter");
-const groupInviteRouter = require("./GroupInviteRouter");
+const campusRouter = require("./campusRouter");
+const teacherRouter = require("./teacherRouter");
+const groupInviteRouter = require("./groupInviteRouter");
 
 const router = express.Router();
 
