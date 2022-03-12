@@ -1,0 +1,38 @@
+const express = require('express')
+const dotenv = require("dotenv");
+const cors = require("cors")
+const bodyParser = require("body-parser");
+const cookieParser = require('cookie-parser')
+const mainRouter = require("./routes/mainRouter");
+
+dotenv.config();
+
+const PORT = process.env.APP_PORT ?? 5000
+const URL = process.env.APP_URL ?? 'http://127.0.0.1'
+const NODE_ENV = process.env.NODE_ENV ?? 'development'
+const app = express()
+
+const allowCorsList = require('./config/cors.json')[NODE_ENV].allowList;
+
+const corsOptionsDelegate = (req, callback) => {
+  let corsOptions;
+
+  if (allowCorsList.includes('*') || allowCorsList.indexOf(req.header('Origin')) !== -1) {
+    corsOptions = {origin: true, credentials: true}
+  } else {
+    corsOptions = {origin: false}
+  }
+
+  callback(null, corsOptions)
+}
+
+app.use(cookieParser('secret key'))
+app.use(express.static('public'));
+app.use(cors(corsOptionsDelegate))
+app.use(bodyParser.json());
+app.use('/api', mainRouter);
+
+app.listen(PORT, () => {
+  console.log(`Server started at ${URL}:${PORT}`)
+})
+
