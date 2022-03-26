@@ -1,5 +1,5 @@
 const express = require("express");
-const {body, param} = require("express-validator");
+const {body, param, query} = require("express-validator");
 const isAuthenticated = require("../../middleware/isAuthenticated");
 const isUserLeader = require("../../middleware/isUserLeader");
 const checkValidationErrors = require("../../middleware/checkValidationErrors");
@@ -18,6 +18,9 @@ router.use(isAuthenticated)
 
 router.get(
   '/',
+  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("offset").isInt({min: 0}).optional(),
+  query("search").isString().optional(),
   UniversityController.getAll
 )
 router.post(
