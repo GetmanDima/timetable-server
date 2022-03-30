@@ -1,7 +1,7 @@
-const db = require("../models")
-const RightController = require("./RightController");
+const db = require("../../models")
+const UniversityStructureController = require("./UniversityStructureController");
 
-class GroupController extends RightController {
+class GroupController extends UniversityStructureController {
   static async getOne(req, res) {
     const groupId = parseInt(req.params["groupId"])
 

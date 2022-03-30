@@ -6,7 +6,7 @@ const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
 const isUserLeader = require("../../middleware/isUserLeader");
 const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
 const isStudentInUniversity = require("../../middleware/isStudentInUniversity");
-const GroupController = require("../../controllers/GroupController");
+const GroupController = require("../../controllers/UniversityStructure/GroupController");
 
 const router = express.Router();
 

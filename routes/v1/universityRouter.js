@@ -6,8 +6,8 @@ const checkValidationErrors = require("../../middleware/checkValidationErrors");
 const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
 const isStudentInUniversity = require("../../middleware/isStudentInUniversity");
 const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
-const UniversityController = require("../../controllers/UniversityController");
-const FacultyController = require("../../controllers/FacultyController");
+const UniversityController = require("../../controllers/UniversityStructure/UniversityController");
+const FacultyController = require("../../controllers/UniversityStructure/FacultyController");
 const CampusController = require("../../controllers/CampusController");
 const SubjectController = require("../../controllers/SubjectController");
 const TeacherController = require("../../controllers/TeacherController");
@@ -55,6 +55,9 @@ router.patch(
 router.get(
   '/:universityId/faculties',
   param('universityId').isInt({min: 1}),
+  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("offset").isInt({min: 0}).optional(),
+  query("search").isString().optional(),
   checkValidationErrors,
   checkModelUserAccess('University', 'universityId', {read: true}),
   FacultyController.getAllByUniversityId

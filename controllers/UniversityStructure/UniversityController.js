@@ -1,36 +1,19 @@
-const {Op} = require("sequelize");
-const db = require("../models");
-const RightController = require("./RightController");
+const db = require("../../models");
+const UniversityStructureController = require("./UniversityStructureController");
 
-
-class UniversityController extends RightController {
+class UniversityController extends UniversityStructureController {
   static async getAll(req, res) {
     const limit = req.query['limit'] || 50
     const offset = req.query['offset'] || 0
     const search = req.query['search']
 
     try {
-      let where = {}
-
-      if (search) {
-        where = {
-          [Op.or]: {
-            name: {
-              [Op.iLike]: `%${search}%`,
-            },
-            fullName: {
-              [Op.iLike]: `%${search}%`,
-            }
-          }
-        }
-      }
-
       const universities = await db.University.findAll({
         include: super._includeRightsCheck(req.user, {read: true}),
         attributes: ['id', 'name', 'fullName', 'address'],
         limit: limit,
         offset: offset,
-        where
+        where: super.getSearchCondition(search)
       })
 
       res.json(universities)

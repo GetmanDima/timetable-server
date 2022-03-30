@@ -1,15 +1,20 @@
-const db = require("../models");
-const RightController = require("./RightController");
+const db = require("../../models");
+const UniversityStructureController = require("./UniversityStructureController");
 
-class DirectionController extends RightController {
+class DirectionController extends UniversityStructureController {
   static async getAllByDepartmentId(req, res) {
     const departmentId = req.params['departmentId']
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
+    const search = req.query['search']
 
     try {
       const directions = await db.Direction.findAll({
-        where: {departmentId},
+        where: {departmentId, ...super.getSearchCondition(search)},
         include: super._includeRightsCheck(req.user, {read: true}),
-        attributes: ['id', 'name', 'fullName']
+        attributes: ['id', 'name', 'fullName'],
+        limit,
+        offset
       })
 
       res.json(directions)

@@ -1,15 +1,20 @@
-const db = require("../models");
-const RightController = require("./RightController");
+const db = require("../../models");
+const UniversityStructureController = require("./UniversityStructureController");
 
-class DepartmentController extends RightController {
+class DepartmentController extends UniversityStructureController {
   static async getAllByFacultyId(req, res) {
     const facultyId = req.params['facultyId']
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
+    const search = req.query['search']
 
     try {
       const departments = await db.Department.findAll({
-        where: {facultyId},
+        where: {facultyId, ...super.getSearchCondition(search)},
         include: super._includeRightsCheck(req.user, {read: true}),
-        attributes: ['id', 'name', 'fullName']
+        attributes: ['id', 'name', 'fullName'],
+        limit: limit,
+        offset: offset,
       })
 
       res.json(departments)
