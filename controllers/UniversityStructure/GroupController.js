@@ -46,26 +46,17 @@ class GroupController extends UniversityStructureController {
     const admissionYear = req.body['admissionYear']
 
     try {
-      const direction = await db.Direction.findByPk(
-        directionId,
-        {include: super._includeRightsCheck(req.user, {write: true})}
-      )
+      const group = await db.sequelize.transaction(async (t) => {
+        const group = await db.Group.create(
+          {name, courseNumber, admissionYear, directionId},
+          {transaction: t}
+        )
 
-      if (!direction) {
-        return res.sendStatus(403)
-      }
+        req.user.groupId = group.id
+        await req.user.save({transaction: t})
 
-      const group = await super._createWithRights(
-        req.user,
-        'Group',
-        {name, courseNumber, admissionYear, directionId},
-        true,
-        [],
-        async (transaction, user, group) => {
-          user.groupId = group.id
-          await user.save({transaction})
-        }
-      )
+        return group
+      })
 
       res.header({Location: `/groups/${group.id}`}).sendStatus(201)
     } catch (_) {

@@ -43,15 +43,6 @@ class FacultyController extends UniversityStructureController {
     const name = req.body['name']
     const fullName = req.body['fullName']
 
-    const university = await db.University.findByPk(
-      universityId,
-      {include: super._includeRightsCheck(req.user, {write: true})}
-    )
-
-    if (!university) {
-      return res.sendStatus(403)
-    }
-
     const faculty = await super._createWithRights(req.user, 'Faculty', {name, fullName, universityId})
 
     res.header({Location: `/faculties/${faculty.id}`}).sendStatus(201)

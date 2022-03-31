@@ -5,7 +5,6 @@ const checkValidationErrors = require("../../middleware/checkValidationErrors");
 const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
 const isUserLeader = require("../../middleware/isUserLeader");
 const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
-const isStudentInUniversity = require("../../middleware/isStudentInUniversity");
 const GroupController = require("../../controllers/UniversityStructure/GroupController");
 
 const router = express.Router();
@@ -21,7 +20,6 @@ router.post(
   body('admissionYear').isInt({min: 2000, max: new Date().getFullYear()}).optional(),
   checkValidationErrors,
   checkModelUserAccess('Direction', 'directionId', {read: true}),
-  isStudentInUniversity,
   GroupController.create
 )
 

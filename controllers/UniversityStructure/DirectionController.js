@@ -28,15 +28,6 @@ class DirectionController extends UniversityStructureController {
     const name = req.body['name']
     const fullName = req.body['fullName']
 
-    const department = await db.Department.findByPk(
-      departmentId,
-      {include: super._includeRightsCheck(req.user, {write: true})}
-    )
-
-    if (!department) {
-      return res.sendStatus(403)
-    }
-
     const direction = await super._createWithRights(req.user, 'Direction', {name, fullName, departmentId})
 
     res.header({Location: `/directions/${direction.id}`}).sendStatus(201)

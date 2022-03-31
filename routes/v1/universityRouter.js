@@ -70,7 +70,7 @@ router.post(
   body('name').notEmpty(),
   body('fullName').notEmpty().optional(),
   checkValidationErrors,
-  isStudentInUniversity,
+  checkModelUserAccess('University', 'universityId', {read: true}),
   FacultyController.create
 )
 
