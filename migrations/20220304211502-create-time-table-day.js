@@ -15,6 +15,12 @@ module.exports = {
       format: {
         type: Sequelize.STRING
       },
+      subjectType: {
+        type: Sequelize.STRING
+      },
+      weekType: {
+        type: Sequelize.STRING
+      },
       classNumber: {
         type: Sequelize.STRING
       },
