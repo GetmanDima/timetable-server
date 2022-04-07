@@ -8,6 +8,10 @@ module.exports = {
         primaryKey: true,
         type: Sequelize.INTEGER
       },
+      name: {
+        allowNull: false,
+        type: Sequelize.STRING
+      },
       url: {
         allowNull: false,
         type: Sequelize.STRING
@@ -15,6 +19,12 @@ module.exports = {
       path: {
         allowNull: false,
         type: Sequelize.STRING
+      },
+      materialId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Materials'
+        }
       },
       createdAt: {
         allowNull: false,

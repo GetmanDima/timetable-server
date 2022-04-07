@@ -20,11 +20,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.TIME
       },
-      groupId: {
+      timetableId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: 'Groups'
+          model: 'Timetables'
         },
         onDelete: 'CASCADE'
       },

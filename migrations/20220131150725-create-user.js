@@ -33,6 +33,13 @@ module.exports = {
         },
         onDelete: 'CASCADE'
       },
+      universityId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Universities'
+        },
+        onDelete: 'CASCADE'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

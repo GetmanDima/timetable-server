@@ -26,7 +26,6 @@ module.exports = {
           email: idx === 0 ? 'leader@mail.loc' : 'student@mail.loc',
           password: hashPassword('password'),
           type: idx === 0 ? 'leader' : 'student',
-          groupId: 1,
           createdAt: new Date(),
           updatedAt: new Date()
         }

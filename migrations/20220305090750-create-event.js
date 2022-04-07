@@ -29,6 +29,13 @@ module.exports = {
         },
         onDelete: 'CASCADE'
       },
+      rightId: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Rights'
+        },
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

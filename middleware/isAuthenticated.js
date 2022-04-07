@@ -19,7 +19,7 @@ module.exports = async (req, res, next) => {
     })
 
     if (data && data.user) {
-      req.user = await db.User.findByPk(data.user.id)
+      req.user = await db.User.findByPk(data.user.id, {attributes: ['id', 'type', 'groupId', 'universityId']})
 
       if (!req.user) {
         return res.sendStatus(401)

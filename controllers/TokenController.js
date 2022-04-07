@@ -32,8 +32,24 @@ class TokenController {
           return res.sendStatus(401)
         }
 
-        const newAccessToken = generateAccessToken({user: data.user})
-        const newRefreshToken = generateRefreshToken({user: data.user})
+        const user = await db.User.findByPk(data.user.id)
+
+        if (!user) {
+          return res.sendStatus(401)
+        }
+
+        const payload = {
+          user: {
+            id: user.id,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            groupId: user.groupId,
+            universityId: user.universityId
+          }
+        }
+
+        const newAccessToken = generateAccessToken(payload)
+        const newRefreshToken = generateRefreshToken(payload)
 
         await db.Token.destroy({where: {userId: data.user.id}})
         await db.Token.create({token: newRefreshToken, userId: data.user.id})

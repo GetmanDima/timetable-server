@@ -1,42 +1,52 @@
 const express = require("express");
-const {param, body, query} = require("express-validator");
-const isAuthenticated = require("../../middleware/isAuthenticated");
-const isUserLeader = require("../../middleware/isUserLeader");
-const checkValidationErrors = require("../../middleware/checkValidationErrors");
-const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
+const {body, param, query} = require("express-validator");
+const handleValidationErrors = require("../../middleware/handleValidationErrors");
+const checkIfEntityExists = require("../../middleware/checkIfEntityExists");
+const isEntityInTimetable = require("../../middleware/isEntityInTimetable")
 const CampusController = require("../../controllers/CampusController");
 
-const router = express.Router();
+const router = express.Router({mergeParams: true});
 
-router.use(isAuthenticated)
-router.use(userBelongsToGroup(true))
+router.get(
+  '/',
+  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("offset").isInt({min: 0}).optional(),
+  handleValidationErrors,
+  CampusController.getAllByTimetableId
+)
+
+router.post(
+  '/',
+  body('name').isString().notEmpty(),
+  body('address').isString().optional(),
+  handleValidationErrors,
+  CampusController.create
+)
 
 router.get(
   '/:campusId',
   param('campusId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Campus', 'campusId', {read: true}),
+  handleValidationErrors,
   CampusController.getOne
 )
 
 router.patch(
   '/:campusId',
-  isUserLeader,
   param('campusId').isInt({min: 1}),
-  body('name').isString(),
-  body('address').isString(),
-  checkValidationErrors,
-  checkModelUserAccess('Campus', 'campusId', {write: true}),
+  body('name').isString().notEmpty().optional(),
+  body('address').isString().optional(),
+  handleValidationErrors,
+  checkIfEntityExists('Campus', 'campusId', ['timetableId']),
+  isEntityInTimetable('Campus'),
   CampusController.update
 )
 
 router.delete(
   '/:campusId',
-  isUserLeader,
   param('campusId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Campus', 'campusId', {write: true}),
+  handleValidationErrors,
+  checkIfEntityExists('Campus', 'campusId', ['timetableId']),
+  isEntityInTimetable('Campus'),
   CampusController.delete
 )
 

@@ -2,7 +2,7 @@ const express = require("express");
 const {body} = require("express-validator");
 const db = require("../models");
 const AuthController = require("../controllers/AuthController");
-const checkValidationErrors = require("../middleware/checkValidationErrors");
+const checkValidationErrors = require("../middleware/handleValidationErrors");
 
 const routerWrapper = (refreshTokenInBody) => {
   const router = express.Router();

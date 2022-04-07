@@ -12,6 +12,14 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
+      timetableId: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Timetables'
+        },
+        onDelete: 'CASCADE'
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE

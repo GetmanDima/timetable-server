@@ -1,16 +1,17 @@
+const db = require("../models")
 const RightController = require("./RightController");
-const db = require("../models");
-const {Op} = require("sequelize");
 
 class CampusController extends RightController {
-  static async getAllByUniversityId(req, res) {
-    const universityId = req.params['universityId']
+  static async getAllByTimetableId(req, res) {
+    const timetableId = req.params['timetableId']
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
 
     try {
       const campuses = await db.Campus.findAll({
-        where: {universityId},
-        include: super._includeRightsCheck(req.user, {read: true}),
-        attributes: ['id', 'name', 'address']
+        where: {timetableId},
+        limit,
+        offset
       })
 
       res.json(campuses)
@@ -21,18 +22,13 @@ class CampusController extends RightController {
 
   static async getOne(req, res) {
     const campusId = req.params['campusId']
+    const timetableId = parseInt(req.params['timetableId'])
 
     try {
-      const campus = await db.Campus.findByPk(
-        campusId,
-        {
-          include: super._includeRightsCheck(req.user, {read: true}),
-          attributes: ['id', 'name', 'address']
-        }
-      )
+      const campus = await db.Campus.findByPk(campusId)
 
-      if (!campus) {
-        return res.sendStatus(403)
+      if (!campus || campus.timetableId !== timetableId) {
+        return res.sendStatus(404)
       }
 
       res.json(campus)
@@ -42,56 +38,26 @@ class CampusController extends RightController {
   }
 
   static async create(req, res) {
-    const universityId = req.params['universityId']
+    const timetableId = req.params['timetableId']
     const name = req.body['name']
     const address = req.body['address']
-    const user = req.user
 
     try {
-      const university = await db.University.findByPk(
-        universityId,
-        {include: super._includeRightsCheck(req.user, {write: true})}
-      )
+      const campus = await db.Campus.create({name, address, timetableId})
 
-      if (!university) {
-        return res.sendStatus(403)
-      }
-
-      const readerRole = (await user.getRoles({
-        where: {
-          name: {
-            [Op.startsWith]: 'student_university_',
-          }
-        }
-      }))[0]
-
-      if (!readerRole) {
-        return res.sendStatus(500)
-      }
-
-      const campus = await super._createWithRights(
-        req.user,
-        'Campus',
-        {name, address, universityId},
-        false,
-        [{role: readerRole, rights: {read: true, write: false}}]
-      )
-
-      res.header({Location: `/campuses/${campus.id}`}).sendStatus(201)
+      res.header({Location: `/class-times/${campus.id}`}).sendStatus(201)
     } catch(_) {
       res.sendStatus(500)
     }
   }
 
   static async update(req, res) {
-    const campusId = req.params['campusId']
     const name = req.body['name']
     const address = req.body['address']
 
     try {
-      await db.Campus.update(
-        {name, address},
-        {where: {id: campusId}}
+      await req.Campus.update(
+        {name, address}
       )
 
       res.sendStatus(200)
@@ -101,13 +67,11 @@ class CampusController extends RightController {
   }
 
   static async delete(req, res) {
-    const campusId = req.params['campusId']
-
     try {
-      await db.Campus.destroy({where: {id: campusId}})
+      await req.Campus.destroy()
 
-      res.sendStatus(200)
-    } catch(_) {
+      return res.sendStatus(200)
+    } catch (_) {
       res.sendStatus(500)
     }
   }

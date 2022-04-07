@@ -1,40 +1,13 @@
 const db = require("../models")
-const {Op} = require("sequelize");
+const RightController = require("./RightController");
 
-class EventController {
-  static async getAllByGroupId(req, res) {
-    const groupId = req.params["groupId"]
-    const activeFromDate = req.query["activeFromDate"]
-    const activeToDate = req.query["activeToDate"]
-    const limit = req.query["limit"] || 10
-    const offset = req.query["offset"] || 0
-
-    const filter = {groupId}
-
-    console.log(activeFromDate)
-    console.log(activeToDate)
-
-    if (activeFromDate && activeToDate) {
-      filter[Op.and] = [
-        {activeFromDate: {[Op.gte]: activeFromDate}},
-        {activeToDate: {[Op.lte]: activeToDate}}
-      ]
-    } else if (activeFromDate) {
-      filter.activeFromDate = {
-        [Op.gte]: activeFromDate
-      }
-    } else if (activeToDate) {
-      filter.activeToDate = {
-        [Op.lte]: activeToDate
-      }
-    }
+class EventController extends RightController {
+  static async getAll(req, res) {
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
 
     try {
-      const events = await db.Event.findAll({
-        limit,
-        offset,
-        where: filter,
-      })
+      const events = await super._getAllWithRightsCheck(req.user, 'Event', limit, offset)
 
       res.json(events)
     } catch (_) {
@@ -48,12 +21,8 @@ class EventController {
     try {
       const event = await db.Event.findByPk(
         eventId,
-        {where: {groupId: req.user.groupId}}
+        {attributes: {exclude: ['rightId']}}
       )
-
-      if (!event) {
-        res.sendStatus(403)
-      }
 
       res.json(event)
     } catch (_) {
@@ -62,16 +31,19 @@ class EventController {
   }
 
   static async create(req, res) {
-    const groupId = req.params['groupId']
     const name = req.body['name']
     const content = req.body['content']
     const activeFromDate = req.body['activeFromDate']
     const activeToDate = req.body['activeToDate']
+    const user = req.user
 
     try {
-      const event = await db.Event.create({
-        name, content, activeFromDate, activeToDate, groupId
-      })
+      const event = await super._createWithRights(
+        req.user,
+        'Event',
+        {name, content, activeFromDate, activeToDate, groupId: user.groupId},
+        true
+      )
 
       res.header({Location: `/events/${event.id}`}).sendStatus(201)
     } catch (_) {
@@ -80,17 +52,13 @@ class EventController {
   }
 
   static async update(req, res) {
-    const eventId = req.params['eventId']
     const name = req.body['name']
     const content = req.body['content']
     const activeFromDate = req.body['activeFromDate']
     const activeToDate = req.body['activeToDate']
 
     try {
-      await db.Event.update(
-        {name, content, activeFromDate, activeToDate},
-        {where: {id: eventId, groupId: req.user.groupId}}
-      )
+      await req.Event.update({name, content, activeFromDate, activeToDate})
 
       res.sendStatus(200)
     } catch (_) {
@@ -99,12 +67,8 @@ class EventController {
   }
 
   static async delete(req, res) {
-    const eventId = req.params['eventId']
-
     try {
-      await db.Event.destroy(
-        {where: {id: eventId}}
-      )
+      await req.Event.destroy()
 
       res.sendStatus(200)
     } catch (_) {

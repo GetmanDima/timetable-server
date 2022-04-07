@@ -1,6 +1,5 @@
-const RightController = require("./RightController");
-const {Op} = require("sequelize");
 const db = require("../models");
+const RightController = require("./RightController");
 
 class GroupInviteController extends RightController {
   static async getAllByGroupId(req, res) {
@@ -21,10 +20,13 @@ class GroupInviteController extends RightController {
     try {
       const invite = await db.GroupInviteCode.findByPk(
         groupInviteId,
-        {where: {groupId: req.user.groupId}}
       )
 
       if (!invite) {
+        return res.sendStatus(404)
+      }
+
+      if (invite.groupId !== req.user.groupId) {
         return res.sendStatus(403)
       }
 
@@ -48,13 +50,16 @@ class GroupInviteController extends RightController {
   }
 
   static async update(req, res) {
-    const groupInviteId = req.params['groupInviteId']
+    const groupInviteCode = req.GroupInviteCode
     const code = req.body['code']
 
+    if (groupInviteCode.groupId !== req.user.groupId) {
+      return res.sendStatus(403)
+    }
+
     try {
-      await db.GroupInviteCode.update(
-        {code},
-        {where: {id: groupInviteId}}
+      await groupInviteCode.update(
+        {code}
       )
 
       res.sendStatus(200)
@@ -64,12 +69,14 @@ class GroupInviteController extends RightController {
   }
 
   static async delete(req, res) {
-    const groupInviteId = req.params['groupInviteId']
+    const groupInviteCode = req.GroupInviteCode
+
+    if (groupInviteCode.groupId !== req.user.groupId) {
+      return res.sendStatus(403)
+    }
 
     try {
-      await db.GroupInviteCode.destroy(
-        {where: {id: groupInviteId}}
-      )
+      await groupInviteCode.destroy()
 
       res.sendStatus(200)
     } catch (_) {

@@ -4,28 +4,11 @@ const {Op, where} = require("sequelize");
 
 class MaterialController extends RightController {
   static async getAll(req, res) {
-    const groupId = req.params['groupId']
-    const subjectId = req.params['subjectId']
-    const limit = req.query["limit"] || 10
-    const offset = req.query["offset"] || 0
-
-    const where = {}
-
-    if (groupId) {
-      where.groupId = groupId
-    }
-
-    if (subjectId) {
-      where.subjectId = subjectId
-    }
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
 
     try {
-      const materials = await db.Material.findAll({
-        limit,
-        offset,
-        include: super._includeRightsCheck(req.user, {read: true}),
-        where
-      })
+      const materials = await super._getAllWithRightsCheck(req.user, 'Material', limit, offset)
 
       res.json(materials)
     } catch (_) {
@@ -40,11 +23,12 @@ class MaterialController extends RightController {
       const material = await db.Material.findByPk(
         materialId,
         {
-          where: {groupId: req.user.groupId},
-          include: [
-            super._includeRightsCheck(req.user, {read: true}),
-            {model: db.File, attributes: ['id', 'path'], through: {attributes: []}}
-          ],
+          include: {
+            model: db.File,
+            attributes: {
+              exclude: ['path']
+            }
+          }
         }
       )
 
@@ -55,35 +39,21 @@ class MaterialController extends RightController {
   }
 
   static async create(req, res) {
-    const subjectId = req.params['subjectId']
     const name = req.body['name']
     const content = req.body['content']
-    const access = req.body['access']
     const files = req.files
     const user = req.user
 
     try {
-      let readerRole
-
-      if (access === "group") {
-        readerRole = await MaterialController.#getUserGroupRole(req.user)
-      } else {
-        readerRole = await MaterialController.#getUserUniversityRole(req.user)
-      }
-
-      if (!readerRole) {
-        return res.sendStatus(500)
-      }
-
       const material = await super._createWithRights(
         req.user,
         'Material',
-        {name, content, subjectId, access, groupId: user.groupId},
-        false,
-        [{role: readerRole, rights: {read: true, write: false}}],
+        {name, content, userId: user.id, groupId: user.groupId},
+        true,
+        [],
         async (transaction, user, material) => {
           const createdFiles = await db.File.bulkCreate(files.map((file) => {
-            return {url: `/uploads/${file.filename}`, path: file.path}
+            return {name: file.filename, path: file.path, url: `/uploads/${file.filename}`}
           }), {transaction})
           await material.setFiles(createdFiles, {transaction})
         }
@@ -96,41 +66,11 @@ class MaterialController extends RightController {
   }
 
   static async update(req, res) {
-    const materialId = req.params['materialId']
     const name = req.body['name']
     const content = req.body['content']
-    const access = req.body['access']
-    const user = req.user
 
     try {
-      const material = await db.Material.findByPk(materialId, {attributes: ['id', 'access']})
-
-      if (access !== material.access) {
-        const userUniversityRole = await MaterialController.#getUserUniversityRole(user)
-        const userGroupRole = await MaterialController.#getUserGroupRole(user)
-
-        if (!userUniversityRole || !userGroupRole) {
-          return res.sendStatus(500)
-        }
-
-        const newReaderRole = access === "group" ? userGroupRole : userUniversityRole
-
-        await db.sequelize.transaction(async (t) => {
-          await material.removeRole(
-            access === "group" ? userUniversityRole : userGroupRole,
-            {transaction: t}
-          )
-          await material.addRole(
-            newReaderRole,
-            {through: {read: true, write: false}, transaction: t}
-          )
-        })
-      }
-
-      await db.Material.update(
-        {name, content, access},
-        {where: {id: materialId, groupId: req.user.groupId}}
-      )
+      await req.Material.update({name, content})
 
       res.sendStatus(200)
     } catch (_) {
@@ -139,61 +79,14 @@ class MaterialController extends RightController {
   }
 
   static async delete(req, res) {
-    const materialId = req.params['materialId']
-
     try {
-      const files = await db.File.findAll({
-        include: {
-          model: db.Material,
-          through: {
-            where: {materialId}
-          },
-          attributes: [],
-          required: true
-        },
-        attributes: ['id']
-      })
+      await db.File.destroy({where: {materialId: req.Material.id}})
+      await req.Material.destroy()
 
-      const fileIds = files.map(_ => _.id)
-
-      await db.sequelize.transaction(async (t) => {
-        await db.File.destroy({
-          where: {
-            id: {
-              [Op.in]: fileIds
-            }
-          },
-          transaction: t
-        })
-
-        await db.Material.destroy({
-          where: {id: materialId},
-          transaction: t
-        })
-
-        res.sendStatus(200)
-      })
+      res.sendStatus(200)
     } catch (_) {
       res.sendStatus(500)
     }
-  }
-
-  static async #getUserGroupRole(user) {
-    return (await user.getRoles({
-      where: {
-        name: `student_group_${user.groupId}`
-      }
-    }))[0]
-  }
-
-  static async #getUserUniversityRole(user) {
-    return (await user.getRoles({
-      where: {
-        name: {
-          [Op.startsWith]: 'student_university_',
-        }
-      }
-    }))[0]
   }
 }
 

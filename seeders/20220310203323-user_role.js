@@ -11,27 +11,21 @@ module.exports = {
      *   isBetaMember: false
      * }], {});
     */
+    const userId = await queryInterface.rawSelect(
+      'Users',
+      {where: {email: "leader@mail.loc"}},
+      ['id']
+    )
+    const allRoleId = await queryInterface.rawSelect('Roles', {where: {name: "all"}}, ['id'])
+    const usersRoleId = await queryInterface.rawSelect('Roles', {where: {name: "users"}}, ['id'])
+    const userIndividualRoleId = await queryInterface.rawSelect('Roles', {where: {name: `user_${userId}`}}, ['id'])
+
     await queryInterface.bulkInsert(
       'Users_Roles',
       [
-        {userId: 1, roleId: 1, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 2, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 3, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 4, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 5, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 6, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 7, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 8, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 9, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 10, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 11, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 1, roleId: 12, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 2, roleId: 1, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 2, roleId: 4, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 2, roleId: 6, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 2, roleId: 8, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 2, roleId: 10, createdAt: new Date(), updatedAt: new Date()},
-        {userId: 2, roleId: 12, createdAt: new Date(), updatedAt: new Date()},
+        {userId, roleId: allRoleId},
+        {userId, roleId: usersRoleId},
+        {userId, roleId: userIndividualRoleId},
       ],
       {}
     );

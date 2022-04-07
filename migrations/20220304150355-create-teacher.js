@@ -12,10 +12,11 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      universityId: {
+      timetableId: {
+        allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: 'Universities'
+          model: 'Timetables'
         },
         onDelete: 'CASCADE'
       },

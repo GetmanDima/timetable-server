@@ -1,43 +1,51 @@
 const express = require("express");
-const {param, body, query} = require("express-validator");
-const isAuthenticated = require("../../middleware/isAuthenticated");
-const isUserLeader = require("../../middleware/isUserLeader");
-const checkValidationErrors = require("../../middleware/checkValidationErrors");
-const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
-const CampusController = require("../../controllers/CampusController");
+const {body, param, query} = require("express-validator");
+const handleValidationErrors = require("../../middleware/handleValidationErrors");
+const checkIfEntityExists = require("../../middleware/checkIfEntityExists");
 const TeacherController = require("../../controllers/TeacherController");
+const isEntityInTimetable = require("../../middleware/isEntityInTimetable");
 
-const router = express.Router();
+const router = express.Router({mergeParams: true});
 
-router.use(isAuthenticated)
-router.use(userBelongsToGroup(true))
+router.get(
+  '/',
+  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("offset").isInt({min: 0}).optional(),
+  handleValidationErrors,
+  TeacherController.getAllByTimetableId
+)
+
+router.post(
+  '/',
+  body('name').isString().notEmpty(),
+  handleValidationErrors,
+  TeacherController.create
+)
 
 router.get(
   '/:teacherId',
   param('teacherId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Teacher', 'teacherId', {read: true}),
+  handleValidationErrors,
   TeacherController.getOne
 )
 
 router.patch(
   '/:teacherId',
-  isUserLeader,
   param('teacherId').isInt({min: 1}),
-  body('name').isString(),
-  checkValidationErrors,
-  checkModelUserAccess('Teacher', 'teacherId', {write: true}),
+  body('name').isString().notEmpty(),
+  handleValidationErrors,
+  checkIfEntityExists('Teacher', 'teacherId', ['timetableId']),
+  isEntityInTimetable('Teacher'),
   TeacherController.update
 )
 
 router.delete(
   '/:teacherId',
-  isUserLeader,
   param('teacherId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Teacher', 'teacherId', {write: true}),
-  CampusController.delete
+  handleValidationErrors,
+  checkIfEntityExists('Teacher', 'teacherId', ['timetableId']),
+  isEntityInTimetable('Teacher'),
+  TeacherController.delete
 )
 
 module.exports = router

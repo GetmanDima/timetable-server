@@ -19,7 +19,8 @@ class AuthController {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
-            groupId: user.groupId
+            groupId: user.groupId,
+            universityId: user.universityId
           }
         }
 
@@ -63,10 +64,10 @@ class AuthController {
     const passwordHash = hashPassword(password)
 
     try {
-      const studentRole = await db.Role.findOne({where: {name: 'student'}})
-      const leaderRole = await db.Role.findOne({where: {name: 'leader'}})
+      const allRole = await db.Role.findOne({where: {name: 'all'}})
+      const usersRole = await db.Role.findOne({where: {name: 'users'}})
 
-      if (!studentRole || !leaderRole) {
+      if (!allRole || !usersRole) {
         return res.sendStatus(500)
       }
 
@@ -75,7 +76,11 @@ class AuthController {
           email, firstName, lastName, password: passwordHash, type: 'leader'
         }, {transaction: t})
 
-        await user.setRoles([studentRole, leaderRole], {transaction: t})
+        const userIndividualRole = await db.Role.create({
+          name: `user_${user.id}`
+        }, {transaction: t})
+
+        await user.setRoles([allRole, usersRole, userIndividualRole], {transaction: t})
 
         return user
       })
@@ -100,16 +105,7 @@ class AuthController {
       include: {
         model: db.Group,
         include: {
-          model: db.Direction,
-          include: {
-            model: db.Department,
-            include: {
-              model: db.Faculty,
-              include: {
-                model: db.University
-              }
-            }
-          }
+          model: db.University
         }
       }
     })
@@ -118,23 +114,16 @@ class AuthController {
       return res.sendStatus(400)
     }
 
-    const userGroup = groupInviteCode.Group
-    const userDirection = userGroup.Direction
-    const userDepartment = userDirection.Department
-    const userFaculty = userDepartment.Faculty
-    const userUniversity = userFaculty.University
+    const group = groupInviteCode.Group
+    const university = group.University
 
     try {
-      const studentRole = await db.Role.findOne({where: {name: 'student'}})
-      const studentGroupRole = await db.Role.findOne({where: {name: `student_group_${userGroup.id}`}})
-      const studentDirectionRole = await db.Role.findOne({where: {name: `student_direction_${userDirection.id}`}})
-      const studentDepartmentRole = await db.Role.findOne({where: {name: `student_department_${userDepartment.id}`}})
-      const studentFacultyRole = await db.Role.findOne({where: {name: `student_faculty_${userFaculty.id}`}})
+      const allRole = await db.Role.findOne({where: {name: 'all'}})
+      const usersRole = await db.Role.findOne({where: {name: 'users'}})
+      const studentGroupRole = await db.Role.findOne({where: {name: `student_group_${group.id}`}})
       const studentUniversityRole = await db.Role.findOne({where: {name: `student_university_${userUniversity.id}`}})
 
-      if (!studentRole || !studentGroupRole
-        || !studentDirectionRole || !studentDepartmentRole
-        || !studentFacultyRole || !studentUniversityRole) {
+      if (!allRole || !usersRole || !studentGroupRole || !studentUniversityRole) {
         return res.sendStatus(500)
       }
 
@@ -144,9 +133,12 @@ class AuthController {
           type: 'student', groupId: groupInviteCode.Group.id
         })
 
+        const userIndividualRole = await db.Role.create({
+          name: `user_${user.id}`
+        }, {transaction: t})
+
         await user.setRoles([
-          studentRole, studentGroupRole, studentDirectionRole,
-          studentDepartmentRole, studentFacultyRole, studentUniversityRole
+          allRole, usersRole, studentGroupRole, studentUniversityRole, userIndividualRole
         ], {transaction: t})
 
         return user

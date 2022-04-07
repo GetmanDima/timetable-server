@@ -1,22 +1,17 @@
 const db = require("../models")
 const RightController = require("./RightController");
-const {Op} = require("sequelize");
 
 class SubjectController extends RightController {
-  static async getAllByUniversityId(req, res) {
-    const universityId = req.params['universityId']
+  static async getAllByTimetableId(req, res) {
+    const timetableId = req.params['timetableId']
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
 
     try {
       const subjects = await db.Subject.findAll({
-        include: {
-          model: db.Role,
-          where: {
-            name: `student_university_${universityId}`
-          },
-          required: true,
-          attributes: []
-        },
-        attributes: ['id', 'name']
+        where: {timetableId},
+        limit,
+        offset
       })
 
       res.json(subjects)
@@ -27,9 +22,14 @@ class SubjectController extends RightController {
 
   static async getOne(req, res) {
     const subjectId = req.params['subjectId']
+    const timetableId = parseInt(req.params['timetableId'])
 
     try {
       const subject = await db.Subject.findByPk(subjectId)
+
+      if (!subject || subject.timetableId !== timetableId) {
+        return res.sendStatus(404)
+      }
 
       res.json(subject)
     } catch (_) {
@@ -38,58 +38,37 @@ class SubjectController extends RightController {
   }
 
   static async create(req, res) {
-    const universityId = req.params['universityId']
+    const timetableId = req.params['timetableId']
     const name = req.body['name']
-    const user = req.user
 
     try {
-      const readerRole = (await user.getRoles({
-        where: {
-          name: `student_university_${universityId}`,
-        }
-      }))[0]
+      const subject = await db.Subject.create({name, timetableId})
 
-      if (!readerRole) {
-        return res.sendStatus(500)
-      }
-
-      const subject = await super._createWithRights(
-        req.user,
-        'Subject',
-        {name},
-        false,
-        [{role: readerRole, rights: {read: true, write: false}}]
-      )
-
-      res.header({Location: `/subjects/${subject.id}`}).sendStatus(201)
-    } catch (_) {
+      res.header({Location: `/class-times/${subject.id}`}).sendStatus(201)
+    } catch(_) {
       res.sendStatus(500)
     }
   }
 
   static async update(req, res) {
-    const subjectId = req.params['subjectId']
     const name = req.body['name']
 
     try {
-      await db.Subject.update(
-        {name},
-        {where: {id: subjectId}}
+      await req.Subject.update(
+        {name}
       )
 
       res.sendStatus(200)
-    } catch (_) {
+    } catch(_) {
       res.sendStatus(500)
     }
   }
 
   static async delete(req, res) {
-    const subjectId = req.params['subjectId']
-
     try {
-      await db.Subject.destroy({where: {id: subjectId}})
+      await req.Subject.destroy()
 
-      res.sendStatus(200)
+      return res.sendStatus(200)
     } catch (_) {
       res.sendStatus(500)
     }

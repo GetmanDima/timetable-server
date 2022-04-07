@@ -38,3 +38,9 @@ exports.relToAbsUrl = (url) => {
 
   return `${process.env.APP_URL}:${process.env.APP_PORT}${url}`
 }
+
+exports.getRoleRightActions = (roleRights) => {
+  return roleRights.map((roleRight) => roleRight.action)
+}
+
+exports.weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]

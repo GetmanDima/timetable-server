@@ -12,19 +12,31 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
+      fullName: {
+        type: Sequelize.STRING
+      },
       courseNumber: {
         type: Sequelize.INTEGER
       },
       admissionYear: {
         type: Sequelize.INTEGER
       },
-      directionId: {
+      creationType: {
+        type: Sequelize.STRING
+      },
+      universityId: {
         allowNull: false,
         type: Sequelize.INTEGER,
         references: {
-          model: 'Directions'
+          model: 'Universities'
         },
-        onDelete: 'CASCADE'
+      },
+      rightId: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Rights'
+        },
       },
       createdAt: {
         allowNull: false,

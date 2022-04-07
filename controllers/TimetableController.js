@@ -1,17 +1,14 @@
 const db = require("../models");
+const RightController = require("./RightController");
 
-class TimetableController {
-  static async getAllByGroupId(req, res) {
-    const groupId = parseInt(req.params['groupId'])
-
-    if (req.user.groupId !== groupId) {
-      return res.sendStatus(403)
-    }
+class TimetableController extends RightController {
+  static async getAll(req, res) {
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
+    const search = req.query['search']
 
     try {
-      const timetables = await db.Timetable.findAll({
-        where: {groupId}
-      })
+      const timetables = await super._getAllWithRightsCheck(req.user, 'Timetable', limit, offset, search)
 
       res.json(timetables)
     } catch (_) {
@@ -21,20 +18,17 @@ class TimetableController {
 
   static async getOne(req, res) {
     const timetableId = req.params['timetableId']
+    const days = req.query['days']
 
     try {
       const timetable = await db.Timetable.findByPk(
         timetableId,
-        {
+        days && {
           include: {
             model: db.TimetableDay
           }
         }
       )
-
-      if (timetable.groupId !== req.user.groupId) {
-        return res.sendStatus(403)
-      }
 
       res.json(timetable)
     } catch (_) {
@@ -43,15 +37,19 @@ class TimetableController {
   }
 
   static async create(req, res) {
-    const groupId = parseInt(req.params['groupId'])
     const name = req.body['name']
+    let personal = req.body['personal']
 
-    if (req.user.groupId !== groupId) {
-      return res.sendStatus(403)
+    if (req.user.type !== "leader") {
+      personal = true
     }
 
     try {
-      const timetable = await db.Timetable.create({name, groupId})
+      const timetable = await super._createWithRights(
+        req.user, 'Timetable',
+        {name, creationType: "custom"},
+        !personal
+      )
 
       res.header({Location: `/timetables/${timetable.id}`}).sendStatus(201)
     } catch (_) {
@@ -60,13 +58,11 @@ class TimetableController {
   }
 
   static async update(req, res) {
-    const timetableId = parseInt(req.params['timetableId'])
     const name = req.body['name']
 
     try {
-      await db.Timetable.update(
+      await req.Timetable.update(
         {name},
-        {where: {id: timetableId, groupId: req.user.groupId}}
       )
 
       res.sendStatus(200)
@@ -76,12 +72,8 @@ class TimetableController {
   }
 
   static async delete(req, res) {
-    const timetableId = parseInt(req.params['timetableId'])
-
     try {
-      await db.Timetable.destroy(
-        {where: {id: timetableId, groupId: req.user.groupId}}
-      )
+      await req.Timetable.destroy()
 
       res.sendStatus(200)
     } catch (_) {

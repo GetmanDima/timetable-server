@@ -1,141 +1,84 @@
 const express = require("express");
 const {body, param, query} = require("express-validator");
 const isAuthenticated = require("../../middleware/isAuthenticated");
+const handleValidationErrors = require("../../middleware/handleValidationErrors");
+const getAuthenticatedUser = require("../../middleware/getUserIfAuthenticated");
 const isUserLeader = require("../../middleware/isUserLeader");
-const checkValidationErrors = require("../../middleware/checkValidationErrors");
-const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
-const isStudentInUniversity = require("../../middleware/isStudentInUniversity");
 const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
-const UniversityController = require("../../controllers/UniversityStructure/UniversityController");
-const FacultyController = require("../../controllers/UniversityStructure/FacultyController");
-const CampusController = require("../../controllers/CampusController");
-const SubjectController = require("../../controllers/SubjectController");
-const TeacherController = require("../../controllers/TeacherController");
+const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
+const checkIfEntityExists = require("../../middleware/checkIfEntityExists")
+const UniversityController = require("../../controllers/UniversityController");
+const GroupController = require("../../controllers/GroupController");
 
 const router = express.Router();
-
-router.use(isAuthenticated)
 
 router.get(
   '/',
   query("limit").isInt({min: 1, max: 50}).optional(),
   query("offset").isInt({min: 0}).optional(),
   query("search").isString().optional(),
+  handleValidationErrors,
+  getAuthenticatedUser,
   UniversityController.getAll
 )
+
 router.post(
   '/',
+  isAuthenticated,
   isUserLeader,
   userBelongsToGroup(false),
   body('name').notEmpty(),
   body('fullName').notEmpty().optional(),
   body('address').notEmpty().optional(),
-  checkValidationErrors,
+  handleValidationErrors,
   UniversityController.create
 )
 router.get(
   '/:universityId',
   param('universityId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('University', 'universityId', {read: true}),
+  handleValidationErrors,
+  getAuthenticatedUser,
+  checkEntityUserRights('University', 'universityId', ['r']),
   UniversityController.getOne
 )
 router.patch(
   '/:universityId',
-  isUserLeader,
   param('universityId').isInt({min: 1}),
-  body('name').notEmpty(),
+  handleValidationErrors,
+  isAuthenticated,
+  body('name').notEmpty().optional(),
   body('fullName').notEmpty().optional(),
   body('address').notEmpty().optional(),
-  checkValidationErrors,
-  checkModelUserAccess('University', 'universityId', {write: true}),
+  handleValidationErrors,
+  checkEntityUserRights('University', 'universityId', ['w']),
   UniversityController.update
 )
 
 router.get(
-  '/:universityId/faculties',
-  param('universityId').isInt({min: 1}),
+  '/:universityId/groups',
+  param("universityId").isInt({min: 1}),
   query("limit").isInt({min: 1, max: 50}).optional(),
   query("offset").isInt({min: 0}).optional(),
   query("search").isString().optional(),
-  checkValidationErrors,
-  checkModelUserAccess('University', 'universityId', {read: true}),
-  FacultyController.getAllByUniversityId
+  handleValidationErrors,
+  getAuthenticatedUser,
+  checkIfEntityExists('University', 'universityId'),
+  GroupController.getAllByUniversityId
 )
+
 router.post(
-  '/:universityId/faculties',
-  isUserLeader,
+  '/:universityId/groups',
+  param("universityId").isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
   userBelongsToGroup(false),
-  param('universityId').isInt({min: 1}),
-  body('name').notEmpty(),
-  body('fullName').notEmpty().optional(),
-  checkValidationErrors,
-  checkModelUserAccess('University', 'universityId', {read: true}),
-  FacultyController.create
-)
-
-router.get(
-  '/:universityId/campuses',
-  isAuthenticated,
-  userBelongsToGroup(true),
-  param('universityId').isInt({min: 1}),
-  checkValidationErrors,
-  isStudentInUniversity,
-  CampusController.getAllByUniversityId
-)
-router.post(
-  '/:universityId/campuses',
-  isAuthenticated,
-  isUserLeader,
-  userBelongsToGroup(true),
-  param('universityId').isInt({min: 1}),
-  body('name').notEmpty(),
-  body('address').notEmpty().optional(),
-  checkValidationErrors,
-  isStudentInUniversity,
-  CampusController.create
-)
-
-router.get(
-  '/:universityId/teachers',
-  isAuthenticated,
-  userBelongsToGroup(true),
-  param('universityId').isInt({min: 1}),
-  checkValidationErrors,
-  isStudentInUniversity,
-  TeacherController.getAllByUniversityId
-)
-router.post(
-  '/:universityId/teachers',
-  isAuthenticated,
-  isUserLeader,
-  userBelongsToGroup(true),
-  param('universityId').isInt({min: 1}),
-  body('name').notEmpty(),
-  checkValidationErrors,
-  isStudentInUniversity,
-  TeacherController.create
-)
-
-router.get(
-  '/:universityId/subjects',
-  isAuthenticated,
-  userBelongsToGroup(true),
-  param('universityId').isInt({min: 1}),
-  checkValidationErrors,
-  isStudentInUniversity,
-  SubjectController.getAllByUniversityId
-)
-router.post(
-  '/:universityId/subjects',
-  isAuthenticated,
-  isUserLeader,
-  userBelongsToGroup(true),
-  param('universityId').isInt({min: 1}),
-  body('name').notEmpty(),
-  checkValidationErrors,
-  isStudentInUniversity,
-  SubjectController.create
+  body('name').isString().notEmpty(),
+  body('fullName').isString().notEmpty().optional(),
+  body('courseNumber').isInt({min: 1, max: 20}).optional(),
+  body('admissionYear').isInt({min: 2000, max: new Date().getFullYear()}).optional(),
+  handleValidationErrors,
+  checkIfEntityExists('University', 'universityId'),
+  GroupController.create
 )
 
 module.exports = router

@@ -12,20 +12,25 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      format: {
-        type: Sequelize.STRING
-      },
-      subjectType: {
-        type: Sequelize.STRING
-      },
       weekType: {
         type: Sequelize.STRING
       },
-      classNumber: {
+      format: {
         type: Sequelize.STRING
       },
+      room: {
+        type: Sequelize.STRING
+      },
+      classType: {
+        type: Sequelize.STRING
+      },
+      activeFromDate: {
+        type: Sequelize.DATE
+      },
+      activeToDate: {
+        type: Sequelize.DATE
+      },
       classTimeId: {
-        allowNull: false,
         type: Sequelize.INTEGER,
         references: {
           model: 'ClassTimes'

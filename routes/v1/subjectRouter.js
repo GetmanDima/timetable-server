@@ -1,65 +1,51 @@
 const express = require("express");
-const {body, param} = require("express-validator");
-const isAuthenticated = require("../../middleware/isAuthenticated");
-const isUserLeader = require("../../middleware/isUserLeader");
-const checkValidationErrors = require("../../middleware/checkValidationErrors");
-const uploadFileMiddleware = require("../../middleware/uploadFileMiddleware");
-const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
+const {body, param, query} = require("express-validator");
+const handleValidationErrors = require("../../middleware/handleValidationErrors");
+const checkIfEntityExists = require("../../middleware/checkIfEntityExists");
 const SubjectController = require("../../controllers/SubjectController");
-const MaterialController = require("../../controllers/MaterialController");
+const isEntityInTimetable = require("../../middleware/isEntityInTimetable");
 
-const router = express.Router();
+const router = express.Router({mergeParams: true});
 
-router.use(isAuthenticated)
-router.use(userBelongsToGroup(true))
+router.get(
+  '/',
+  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("offset").isInt({min: 0}).optional(),
+  handleValidationErrors,
+  SubjectController.getAllByTimetableId
+)
+
+router.post(
+  '/',
+  body('name').isString().notEmpty(),
+  handleValidationErrors,
+  SubjectController.create
+)
 
 router.get(
   '/:subjectId',
   param('subjectId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Subject', 'subjectId', {read: true}),
+  handleValidationErrors,
   SubjectController.getOne
 )
 
 router.patch(
   '/:subjectId',
-  isUserLeader,
   param('subjectId').isInt({min: 1}),
-  body('name').notEmpty(),
-  checkValidationErrors,
-  checkModelUserAccess('Subject', 'subjectId', {write: true}),
+  body('name').isString().notEmpty(),
+  handleValidationErrors,
+  checkIfEntityExists('Subject', 'subjectId', ['timetableId']),
+  isEntityInTimetable('Subject'),
   SubjectController.update
 )
 
 router.delete(
   '/:subjectId',
-  isUserLeader,
   param('subjectId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Subject', 'subjectId', {write: true}),
+  handleValidationErrors,
+  checkIfEntityExists('Subject', 'subjectId', ['timetableId']),
+  isEntityInTimetable('Subject'),
   SubjectController.delete
-)
-
-router.get(
-  '/:subjectId/materials',
-  param('subjectId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Subject', 'subjectId', {read: true}),
-  MaterialController.getAll
-)
-
-router.post(
-  '/:subjectId/materials',
-  isUserLeader,
-  param('subjectId').isInt({min: 1}),
-  uploadFileMiddleware.array("files", 10),
-  body('name').isString().notEmpty(),
-  body('content').isString(),
-  body('access').isIn(['group', 'university']),
-  checkValidationErrors,
-  checkModelUserAccess('Subject', 'subjectId', {read: true}),
-  MaterialController.create
 )
 
 module.exports = router

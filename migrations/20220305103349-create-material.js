@@ -15,15 +15,12 @@ module.exports = {
       content: {
         type: Sequelize.STRING
       },
-      access: {
+      userId: {
         allowNull: false,
-        type: Sequelize.STRING
-      },
-      subjectId: {
         type: Sequelize.INTEGER,
         references: {
-          model: 'Subjects'
-        }
+          model: 'Users'
+        },
       },
       groupId: {
         allowNull: false,
@@ -31,7 +28,19 @@ module.exports = {
         references: {
           model: 'Groups'
         },
-        onDelete: 'CASCADE'
+      },
+      subjectId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Subjects'
+        }
+      },
+      rightId: {
+        allowNull: false,
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'Rights'
+        },
       },
       createdAt: {
         allowNull: false,

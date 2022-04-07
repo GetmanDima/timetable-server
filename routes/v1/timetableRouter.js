@@ -1,60 +1,115 @@
 const express = require("express");
-const {param, body} = require("express-validator");
-const checkValidationErrors = require("../../middleware/checkValidationErrors");
+const {param, body, query} = require("express-validator");
+const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const isAuthenticated = require("../../middleware/isAuthenticated");
-const checkModelExists = require("../../middleware/checkModelExists");
-const isUserLeader = require("../../middleware/isUserLeader");
 const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
-const TimetableDayController = require("../../controllers/TimetableDayController");
+const getUserIfAuthenticated = require("../../middleware/getUserIfAuthenticated");
+const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
 const TimetableController = require("../../controllers/TimetableController");
+const timetableDayRouter = require("./timetableDayRouter")
+const classTimeRouter = require("./classTimeRouter")
+const subjectRouter = require("./subjectRouter")
+const teacherRouter = require("./teacherRouter")
+const campusRouter = require("./teacherRouter")
 
 const router = express.Router();
 
-router.use(isAuthenticated)
-router.use(userBelongsToGroup(true))
+router.get(
+  '/',
+  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("offset").isInt({min: 0}).optional(),
+  query("search").isString().optional(),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  TimetableController.getAll
+)
+
+router.post(
+  '/',
+  isAuthenticated,
+  userBelongsToGroup(true),
+  body('name').isString().notEmpty(),
+  body('personal').isBoolean().optional(),
+  handleValidationErrors,
+  TimetableController.create
+)
 
 router.get(
   '/:timetableId',
   param('timetableId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelExists('Timetable', 'timetableId'),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  query('days').isBoolean().optional(),
+  handleValidationErrors,
+  checkEntityUserRights('Timetable', 'timetableId', ['r']),
   TimetableController.getOne
 )
 
 router.patch(
   '/:timetableId',
-  isUserLeader,
+  param('timetableId').isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
   body('name').isString().notEmpty(),
-  checkValidationErrors,
-  checkModelExists('Timetable', 'timetableId'),
+  handleValidationErrors,
+  checkEntityUserRights('Timetable', 'timetableId', ['w']),
   TimetableController.update
 )
 
 router.delete(
   '/:timetableId',
-  isUserLeader,
+  param('timetableId').isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
   body('name').isString().notEmpty(),
-  checkValidationErrors,
-  checkModelExists('Timetable', 'timetableId'),
+  handleValidationErrors,
+  checkEntityUserRights('Timetable', 'timetableId', ['w']),
   TimetableController.delete
 )
 
-router.get(
+router.use(
   '/:timetableId/days',
   param('timetableId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelExists('Timetable', 'timetableId'),
-  TimetableDayController.getAllByTimetableId
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  timetableDayRouter
 )
 
-router.post(
-  '/:timetableId/days',
-  isUserLeader,
+router.use(
+  '/:timetableId/class-times',
   param('timetableId').isInt({min: 1}),
-  body('weekDay').notEmpty(),
-  checkValidationErrors,
-  checkModelExists('Timetable', 'timetableId'),
-  TimetableDayController.create
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  classTimeRouter
+)
+
+router.use(
+  '/:timetableId/subjects',
+  param('timetableId').isInt({min: 1}),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  subjectRouter
+)
+
+router.use(
+  '/:timetableId/teachers',
+  param('timetableId').isInt({min: 1}),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  teacherRouter
+)
+
+router.use(
+  '/:timetableId/campuses',
+  param('timetableId').isInt({min: 1}),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  campusRouter
 )
 
 module.exports = router

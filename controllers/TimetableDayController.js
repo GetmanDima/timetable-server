@@ -3,16 +3,14 @@ const db = require("../models");
 class TimetableDayController {
   static async getAllByTimetableId(req, res) {
     const timetableId = req.params['timetableId']
-
-    const timetable = await db.Timetable.findByPk(timetableId, {attributes: ['groupId']})
-
-    if (timetable.groupId !== req.user.groupId) {
-      return res.sendStatus(403)
-    }
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
 
     try {
       const days = await db.TimetableDay.findAll({
-        where: {timetableId}
+        where: {timetableId},
+        limit,
+        offset
       })
 
       res.json(days)
@@ -23,24 +21,13 @@ class TimetableDayController {
 
   static async getOne(req, res) {
     const timetableDayId = req.params['timetableDayId']
+    const timetableId = parseInt(req.params['timetableId'])
 
     try {
-      const day = await db.TimetableDay.findByPk(
-        timetableDayId,
-        {
-          where: {
-            include: [{
-              model: db.Timetable,
-              where: {
-                groupId: req.user.groupId
-              }
-            }]
-          }
-        }
-      )
+      const day = await db.TimetableDay.findByPk(timetableDayId)
 
-      if (!day) {
-        return res.sendStatus(403)
+      if (!day || day.timetableId !== timetableId) {
+        return res.sendStatus(404)
       }
 
       res.json(day)
@@ -52,68 +39,47 @@ class TimetableDayController {
   static async create(req, res) {
     const timetableId = req.params['timetableId']
     const weekDay = req.body['weekDay']
+    const weekType = req.body['weekType']
     const format = req.body['format']
-    const classNumber = req.body['classNumber']
+    const room = req.body['room']
+    const classType = req.body['classType']
+    const activeFromDate = req.body['activeFromDate']
+    const activeToDate = req.body['activeToDate']
     const classTimeId = req.body['classTimeId']
     const subjectId = req.body['subjectId']
     const teacherId = req.body['teacherId']
     const campusId = req.body['campusId']
 
     try {
-      const timetable = await db.Timetable.findByPk(timetableId, {attributes: ['groupId']})
-
-      if (timetable.groupId !== req.user.groupId) {
-        return res.sendStatus(403)
-      }
-
       const timetableDay = await db.TimetableDay.create({
-        weekDay, format, classNumber, classTimeId,
-        subjectId, teacherId, campusId, timetableId
+        weekDay, weekType, format, room, classType, activeFromDate, activeToDate,
+        classTimeId, subjectId, teacherId, campusId, timetableId
       })
 
-      res.header({Location: `/timetable-day/${timetableDay.id}`}).sendStatus(201)
+      res.header({Location: `/timetable-days/${timetableDay.id}`}).sendStatus(201)
     } catch (_) {
       res.sendStatus(500)
     }
   }
 
   static async update(req, res) {
-    const timetableDayId = req.params['timetableDayId']
     const weekDay = req.body['weekDay']
+    const weekType = req.body['weekType']
     const format = req.body['format']
-    const classNumber = req.body['classNumber']
+    const room = req.body['room']
+    const classType = req.body['classType']
+    const activeFromDate = req.body['activeFromDate']
+    const activeToDate = req.body['activeToDate']
     const classTimeId = req.body['classTimeId']
     const subjectId = req.body['subjectId']
     const teacherId = req.body['teacherId']
     const campusId = req.body['campusId']
 
     try {
-      const timetableDay = await db.TimetableDay.findByPk(
-        timetableDayId,
-        {
-          include: {
-            model: db.Timetable,
-            attributes: ['groupId']
-          },
-          attributes: []
-        }
-      )
-
-      if (timetableDay.Timetable.groupId !== req.user.groupId) {
-        return res.sendStatus(403)
-      }
-
-      await db.TimetableDay.update(
-        {
-          weekDay, format, classNumber, classTimeId,
-          subjectId, teacherId, campusId,
-        },
-        {
-          where: {
-            id: timetableDayId,
-          }
-        }
-      )
+      await req.TimetableDay.update({
+        weekDay, weekType, format, room, classType, activeFromDate, activeToDate,
+        classTimeId, subjectId, teacherId, campusId
+      })
 
       res.sendStatus(200)
     } catch (_) {
@@ -122,29 +88,8 @@ class TimetableDayController {
   }
 
   static async delete(req, res) {
-    const timetableDayId = req.params['timetableDayId']
-
-    const timetableDay = await db.TimetableDay.findByPk(
-      timetableDayId,
-      {
-        include: {
-          model: db.Timetable,
-          attributes: ['groupId']
-        },
-        attributes: []
-      }
-    )
-
-    if (timetableDay.Timetable.groupId !== req.user.groupId) {
-      return res.sendStatus(403)
-    }
-
     try {
-      await db.TimetableDay.destroy({
-        where: {
-          id: timetableDayId,
-        }
-      })
+      await req.TimetableDay.destroy()
 
       res.sendStatus(200)
     } catch (_) {

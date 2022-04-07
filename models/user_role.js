@@ -19,7 +19,8 @@ module.exports = (sequelize, DataTypes) => {
   }, {
     sequelize,
     modelName: 'User_Role',
-    tableName: 'Users_Roles'
+    tableName: 'Users_Roles',
+    timestamps: false
   });
   return User_Role;
 };

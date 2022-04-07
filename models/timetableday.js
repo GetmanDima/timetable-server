@@ -19,10 +19,12 @@ module.exports = (sequelize, DataTypes) => {
   }
   TimetableDay.init({
     weekDay: DataTypes.STRING,
-    format: DataTypes.STRING,
-    subjectType: DataTypes.STRING,
     weekType: DataTypes.STRING,
-    classNumber: DataTypes.STRING,
+    format: DataTypes.STRING,
+    room: DataTypes.STRING,
+    classType: DataTypes.STRING,
+    activeFromDate: DataTypes.DATE,
+    activeToDate: DataTypes.DATE,
     classTimeId: DataTypes.INTEGER,
     subjectId: DataTypes.INTEGER,
     teacherId: DataTypes.INTEGER,

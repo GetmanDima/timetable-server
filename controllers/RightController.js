@@ -1,110 +1,139 @@
 const db = require("../models")
+const {Op} = require("sequelize");
+const AppController = require("./AppController")
 
-class RightController {
-  static async _getAllWidthRights(req, res,
-                                      entity = {modelName: null, attributes}) {
-    try {
-      const models = await db[entity.modelName].findAll({
+class RightController extends AppController {
+  static async _getAllWithRightsCheck(user, modelName, limit, offset, search = '', additionalConditions = {}) {
+    let where = {}
+
+    if (search) {
+      where = super._getSearchCondition(search)
+    }
+
+    if (additionalConditions) {
+      where = {...where, ...additionalConditions}
+    }
+
+    const entities = await db[modelName].findAll({
+      where,
+      include: RightController._includeRightsCheck(user, ['r']),
+      limit,
+      offset,
+      attributes: {
+        exclude: ['rightId']
+      },
+    })
+
+    return entities.map((entity) => {
+      const jsonEntity = entity.toJSON()
+      delete jsonEntity.Right
+      return jsonEntity
+    })
+  }
+
+  static _includeRightsCheck(user, actions) {
+    if (user) {
+      return {
+        model: db.Right,
+        attributes: ['id'],
         include: {
           model: db.Role,
-          include: {
-            model: db.User,
-            through: {
-              where: {
-                userId: req.user.id
+          attributes: [],
+          through: {
+            where: {
+              action: {
+                [Op.in]: actions
               }
             },
             attributes: []
           },
+          include: {
+            model: db.User,
+            where: {
+              id: user.id
+            },
+            attributes: [],
+            required: true
+          },
+          required: true
+        }
+      }
+    } else {
+      return {
+        model: db.Right,
+        attributes: ['id'],
+        include: {
+          model: db.Role,
+          attributes: [],
+          where: {
+            name: 'all'
+          },
           through: {
             where: {
-              read: true
+              action: {
+                [Op.in]: actions
+              }
             },
             attributes: []
           },
-          attributes: [],
-          required: true
-        },
-        attributes: entity.attributes
-      })
-
-      res.json(models)
-    } catch(_) {
-      res.sendStatus(500)
-    }
-  }
-
-  static _includeRightsCheck(user, requiredRights) {
-    return {
-      model: db.Role,
-      include: {
-        model: db.User,
-        through: {
-          where: {
-            userId: user.id
-          }
-        },
-        required: true,
-        attributes: []
-      },
-      through: {
-        where: requiredRights,
-        attributes: [],
-      },
-      attributes: [],
-      required: true
+        }
+      }
     }
   }
 
   static async _createWithRights(user, modelName, data,
-                                 withStudentReaderRole = true, additionalRolesWithRights = [],
+                                 withStudentGroupRole = true, additionalRolesWithActions = [],
                                  transactionCb = (transaction, user, entityModel) => {}) {
+    const userIndividualRole = await db.Role.findOne({
+      where: {name: `user_${user.id}`},
+      attributes: ['id']
+    })
+
+    let studentGroupRole
+
+    if (withStudentGroupRole) {
+      studentGroupRole = await db.Role.findOne(
+        {name: `student_group_${user.groupId}`}
+      )
+
+      if (!studentGroupRole) {
+        throw `Not found student_group_${user.groupId} role`
+      }
+    }
+
+    if (!userIndividualRole) {
+      throw `Not found user_${user.id} role`
+    }
+
+    const right = await db.Right.create({})
+
+    if (!right) {
+      throw `Error when creating right`
+    }
+
     return await db.sequelize.transaction(async (t) => {
-      const entityModel = await db[modelName].create(
-        data,
-        {transaction: t}
-      )
+      await db.Role_Right.create({roleId: userIndividualRole.id, rightId: right.id, action: 'w'})
 
-      const creatorRole = await db.Role.create(
-        {name: `creator_${modelName.toLowerCase()}_${entityModel.id}`},
-        {transaction: t}
-      )
-
-      await user.addRole(creatorRole, {transaction: t})
-
-      await entityModel.addRole(
-        creatorRole,
-        {through: {read: true, write: true}, transaction: t}
-      )
-
-      if (withStudentReaderRole) {
-        const studentRole = await db.Role.create(
-          {name: `student_${modelName.toLowerCase()}_${entityModel.id}`},
-          {transaction: t}
-        )
-
-        await user.addRole(studentRole, {transaction: t})
-
-        await entityModel.addRole(
-          studentRole,
-          {through: {read: true, write: false}, transaction: t}
-        )
+      if (withStudentGroupRole) {
+        await db.Role_Right.create({roleId: studentGroupRole.id, rightId: right.id, action: 'r'})
+      } else {
+        await db.Role_Right.create({roleId: userIndividualRole.id, rightId: right.id, action: 'r'})
       }
 
-      for (const roleRight of additionalRolesWithRights) {
-        if (roleRight.addToUser) {
-          await user.addRole(roleRight.role, {transaction: t})
+      for (const roleRight of additionalRolesWithActions) {
+        for (const action in additionalRolesWithActions.actions) {
+          await db.Role_Right.create({roleId: roleRight.role.id, rightId: right.id, action})
         }
-
-        await entityModel.addRole(
-          roleRight.role,
-          {through: roleRight.rights, transaction: t}
-        )
       }
 
-      await transactionCb(t, user, entityModel)
+      const entity = await db[modelName].create(
+        {...data, rightId: right.id},
+        {transaction: t}
+      )
 
-      return entityModel
+      await transactionCb(t, user, entity)
+
+      return entity
     })
   }
 }

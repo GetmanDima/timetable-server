@@ -10,18 +10,20 @@ module.exports = (sequelize, DataTypes) => {
      * The `models/index` file will call this method automatically.
      */
     static associate(models) {
-      this.belongsTo(models.Subject, {foreignKey: 'groupId'})
+      this.belongsTo(models.User, {foreignKey: 'userId'})
+      this.belongsTo(models.Group, {foreignKey: 'groupId'})
       this.belongsTo(models.Subject, {foreignKey: 'subjectId'})
-      this.belongsToMany(models.Role, {through: models.Material_RoleRight, foreignKey: "materialId"})
-      this.belongsToMany(models.File, {through: models.Material_File, foreignKey: "materialId"})
+      this.belongsTo(models.Right, {foreignKey: 'rightId'})
+      this.hasMany(models.File, {foreignKey: "materialId"})
     }
   }
   Material.init({
     name: DataTypes.STRING,
     content: DataTypes.STRING,
-    access: DataTypes.STRING,
+    userId: DataTypes.INTEGER,
+    groupId: DataTypes.INTEGER,
     subjectId: DataTypes.INTEGER,
-    groupId: DataTypes.INTEGER
+    rightId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'Material',

@@ -1,65 +1,64 @@
 const express = require("express");
 const {param, body, query} = require("express-validator");
+const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const isAuthenticated = require("../../middleware/isAuthenticated");
-const isUserLeader = require("../../middleware/isUserLeader");
-const checkValidationErrors = require("../../middleware/checkValidationErrors");
-const uploadFileMiddleware = require("../../middleware/uploadFileMiddleware");
-const checkModelUserAccess = require("../../middleware/checkModelUserAccess");
 const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
+const isUserLeader = require("../../middleware/isUserLeader");
+const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
+const uploadFileMiddleware = require("../../middleware/uploadFileMiddleware");
 const MaterialController = require("../../controllers/MaterialController");
 
 const router = express.Router();
-
-router.use(isAuthenticated)
-router.use(userBelongsToGroup(true))
-
-router.get(
-  '/:materialId',
-  param('materialId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Material', 'materialId', {read: true}),
-  MaterialController.getOne
-)
 
 router.get(
   '/',
   query('limit').isInt({min: 1}).optional(),
   query('offset').isInt({min: 0}).optional(),
-  checkValidationErrors,
+  handleValidationErrors,
+  isAuthenticated,
   MaterialController.getAll
 )
 
 router.post(
   '/',
+  isAuthenticated,
+  userBelongsToGroup(true),
   isUserLeader,
   uploadFileMiddleware.array("files", 10),
   body('name').isString().notEmpty(),
-  body('content').isString(),
-  body('access').isIn(['group', 'university']),
-  checkValidationErrors,
+  body('content').isString().optional(),
+  handleValidationErrors,
   MaterialController.create
+)
+
+router.get(
+  '/:materialId',
+  param('materialId').isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
+  checkEntityUserRights('Material', 'materialId', ['r']),
+  MaterialController.getOne
 )
 
 router.patch(
   '/:materialId',
-  isUserLeader,
   param('materialId').isInt({min: 1}),
-  checkValidationErrors,
+  handleValidationErrors,
+  isAuthenticated,
   uploadFileMiddleware.array("files", 10),
-  body('name').isString().notEmpty(),
-  body('content').isString(),
-  body('access').isIn(['group', 'university']),
-  checkValidationErrors,
-  checkModelUserAccess('Material', 'materialId', {write: true}),
+  body('name').isString().notEmpty().optional(),
+  body('content').isString().optional(),
+  handleValidationErrors,
+  checkEntityUserRights('Material', 'materialId', ['w']),
   MaterialController.update
 )
 
 router.delete(
   '/:materialId',
-  isUserLeader,
   param('materialId').isInt({min: 1}),
-  checkValidationErrors,
-  checkModelUserAccess('Material', 'materialId', {write: true}),
+  handleValidationErrors,
+  isAuthenticated,
+  checkEntityUserRights('Material', 'materialId', ['w']),
   MaterialController.delete
 )
 
