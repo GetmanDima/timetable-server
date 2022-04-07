@@ -9,8 +9,17 @@ class TimetableDayController {
     try {
       const days = await db.TimetableDay.findAll({
         where: {timetableId},
+        attributes: {
+          exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
+        },
+        include: [
+          {model: db.ClassTime},
+          {model: db.Teacher},
+          {model: db.Subject},
+          {model: db.Campus}
+        ],
         limit,
-        offset
+        offset,
       })
 
       res.json(days)
@@ -24,7 +33,20 @@ class TimetableDayController {
     const timetableId = parseInt(req.params['timetableId'])
 
     try {
-      const day = await db.TimetableDay.findByPk(timetableDayId)
+      const day = await db.TimetableDay.findByPk(
+        timetableDayId,
+        {
+          attributes: {
+            exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
+          },
+          include: [
+            {model: db.ClassTime},
+            {model: db.Teacher},
+            {model: db.Subject},
+            {model: db.Campus}
+          ],
+        }
+      )
 
       if (!day || day.timetableId !== timetableId) {
         return res.sendStatus(404)

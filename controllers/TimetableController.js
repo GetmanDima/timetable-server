@@ -19,15 +19,34 @@ class TimetableController extends RightController {
   static async getOne(req, res) {
     const timetableId = req.params['timetableId']
     const days = req.query['days']
+    let dayInclude = {}
+
+    if (days) {
+      dayInclude = {
+        include: {
+          model: db.TimetableDay,
+          attributes: {
+            exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
+          },
+          include: [
+            {model: db.ClassTime},
+            {model: db.Teacher},
+            {model: db.Subject},
+            {model: db.Campus}
+          ]
+        },
+      }
+    }
 
     try {
       const timetable = await db.Timetable.findByPk(
         timetableId,
-        days && {
-          include: {
-            model: db.TimetableDay
-          }
-        }
+        {
+          attributes: {
+            exclude: ['rightId', 'creationType']
+          },
+          ...dayInclude
+        },
       )
 
       res.json(timetable)
