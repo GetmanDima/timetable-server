@@ -3,7 +3,7 @@ const db = require("../models");
 class TimetableDayController {
   static async getAllByTimetableId(req, res) {
     const timetableId = req.params['timetableId']
-    const limit = req.query['limit'] || 50
+    const limit = req.query['limit'] || 140
     const offset = req.query['offset'] || 0
 
     try {

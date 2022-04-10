@@ -12,7 +12,7 @@ const router = express.Router({mergeParams: true});
 
 router.get(
   '/',
-  query("limit").isInt({min: 1, max: 50}).optional(),
+  query("limit").isInt({min: 1, max: 140}).optional(),
   query("offset").isInt({min: 0}).optional(),
   handleValidationErrors,
   TimetableDayController.getAllByTimetableId
