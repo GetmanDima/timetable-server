@@ -11,12 +11,14 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Right, {foreignKey: 'rightId'})
-      this.hasMany(models.TimetableDay, {foreignKey: "timetableId"})
+      this.belongsTo(models.Group, {foreignKey: 'groupId'})
+      this.hasMany(models.TimetableDay, {foreignKey: 'timetableId'})
     }
   }
   Timetable.init({
     name: DataTypes.STRING,
     creationType: DataTypes.STRING,
+    groupId: DataTypes.INTEGER,
     rightId: DataTypes.INTEGER
   }, {
     sequelize,
