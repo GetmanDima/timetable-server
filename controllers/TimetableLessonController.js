@@ -1,13 +1,13 @@
 const db = require("../models");
 
-class TimetableDayController {
+class TimetableLessonController {
   static async getAllByTimetableId(req, res) {
     const timetableId = req.params['timetableId']
     const limit = req.query['limit'] || 140
     const offset = req.query['offset'] || 0
 
     try {
-      const days = await db.TimetableDay.findAll({
+      const lessons = await db.TimetableLesson.findAll({
         where: {timetableId},
         attributes: {
           exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
@@ -22,19 +22,19 @@ class TimetableDayController {
         offset,
       })
 
-      res.json(days)
+      res.json(lessons)
     } catch (_) {
       res.sendStatus(500)
     }
   }
 
   static async getOne(req, res) {
-    const timetableDayId = req.params['timetableDayId']
+    const timetableLessonId = req.params['timetableLessonId']
     const timetableId = parseInt(req.params['timetableId'])
 
     try {
-      const day = await db.TimetableDay.findByPk(
-        timetableDayId,
+      const lesson = await db.TimetableLesson.findByPk(
+        timetableLessonId,
         {
           attributes: {
             exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
@@ -48,11 +48,11 @@ class TimetableDayController {
         }
       )
 
-      if (!day || day.timetableId !== timetableId) {
+      if (!lesson || lesson.timetableId !== timetableId) {
         return res.sendStatus(404)
       }
 
-      res.json(day)
+      res.json(lesson)
     } catch(_) {
       res.sendStatus(500)
     }
@@ -73,12 +73,12 @@ class TimetableDayController {
     const campusId = req.body['campusId']
 
     try {
-      const timetableDay = await db.TimetableDay.create({
+      const lesson = await db.TimetableLesson.create({
         weekDay, weekType, format, room, classType, activeFromDate, activeToDate,
         classTimeId, subjectId, teacherId, campusId, timetableId
       })
 
-      res.header({Location: `/timetable-days/${timetableDay.id}`}).sendStatus(201)
+      res.header({Location: `/timetables/${timetableId}/${lesson.id}`}).sendStatus(201)
     } catch (_) {
       res.sendStatus(500)
     }
@@ -98,7 +98,7 @@ class TimetableDayController {
     const campusId = req.body['campusId']
 
     try {
-      await req.TimetableDay.update({
+      await req.TimetableLesson.update({
         weekDay, weekType, format, room, classType, activeFromDate, activeToDate,
         classTimeId, subjectId, teacherId, campusId
       })
@@ -111,7 +111,7 @@ class TimetableDayController {
 
   static async delete(req, res) {
     try {
-      await req.TimetableDay.destroy()
+      await req.TimetableLesson.destroy()
 
       res.sendStatus(200)
     } catch (_) {
@@ -120,4 +120,4 @@ class TimetableDayController {
   }
 }
 
-module.exports = TimetableDayController
+module.exports = TimetableLessonController

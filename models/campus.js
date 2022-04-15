@@ -11,7 +11,7 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Timetable, {foreignKey: "timetableId"})
-      this.hasMany(models.TimetableDay, {foreignKey: "campusId"})
+      this.hasMany(models.TimetableLesson, {foreignKey: "campusId"})
     }
   }
   Campus.init({

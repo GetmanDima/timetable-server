@@ -6,7 +6,7 @@ const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
 const getUserIfAuthenticated = require("../../middleware/getUserIfAuthenticated");
 const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
 const TimetableController = require("../../controllers/TimetableController");
-const timetableDayRouter = require("./timetableDayRouter")
+const timetableLessonRouter = require("./timetableLessonRouter")
 const classTimeRouter = require("./classTimeRouter")
 const subjectRouter = require("./subjectRouter")
 const teacherRouter = require("./teacherRouter")
@@ -39,7 +39,7 @@ router.get(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  query('days').isBoolean().optional(),
+  query('lessons').isBoolean().optional(),
   handleValidationErrors,
   checkEntityUserRights('Timetable', 'timetableId', ['r']),
   TimetableController.getOne
@@ -68,12 +68,12 @@ router.delete(
 )
 
 router.use(
-  '/:timetableId/days',
+  '/:timetableId/lessons',
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
   checkEntityUserRights('Timetable', 'timetableId', ['r']),
-  timetableDayRouter
+  timetableLessonRouter
 )
 
 router.use(

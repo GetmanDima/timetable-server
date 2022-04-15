@@ -3,7 +3,7 @@ const {
   Model
 } = require('sequelize');
 module.exports = (sequelize, DataTypes) => {
-  class TimetableDay extends Model {
+  class TimetableLesson extends Model {
     /**
      * Helper method for defining associations.
      * This method is not a part of Sequelize lifecycle.
@@ -17,7 +17,7 @@ module.exports = (sequelize, DataTypes) => {
       this.belongsTo(models.Timetable, {foreignKey: "timetableId"})
     }
   }
-  TimetableDay.init({
+  TimetableLesson.init({
     weekDay: DataTypes.STRING,
     weekType: DataTypes.STRING,
     format: DataTypes.STRING,
@@ -32,7 +32,7 @@ module.exports = (sequelize, DataTypes) => {
     timetableId: DataTypes.INTEGER,
   }, {
     sequelize,
-    modelName: 'TimetableDay',
+    modelName: 'TimetableLesson',
   });
-  return TimetableDay;
+  return TimetableLesson;
 };

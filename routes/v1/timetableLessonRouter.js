@@ -4,8 +4,8 @@ const {weekDays} = require("../../helpers");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const checkIfEntityExists = require("../../middleware/checkIfEntityExists");
 const isEntityInTimetable = require("../../middleware/isEntityInTimetable");
-const {createUpdateRules} = require("../../validation/timetableDay")
-const TimetableDayController = require("../../controllers/TimetableDayController");
+const {createUpdateRules} = require("../../validation/timetableLesson")
+const TimetableLessonController = require("../../controllers/TimetableLessonController");
 
 
 const router = express.Router({mergeParams: true});
@@ -15,7 +15,7 @@ router.get(
   query("limit").isInt({min: 1, max: 140}).optional(),
   query("offset").isInt({min: 0}).optional(),
   handleValidationErrors,
-  TimetableDayController.getAllByTimetableId
+  TimetableLessonController.getAllByTimetableId
 )
 
 router.post(
@@ -33,19 +33,19 @@ router.post(
   body('campusId').isInt({min: 1}).optional(),
   createUpdateRules,
   handleValidationErrors,
-  TimetableDayController.create
+  TimetableLessonController.create
 )
 
 router.get(
-  '/:timetableDayId',
-  param('timetableDayId').isInt({min: 1}),
+  '/:timetableLessonId',
+  param('timetableLessonId').isInt({min: 1}),
   handleValidationErrors,
-  TimetableDayController.getOne
+  TimetableLessonController.getOne
 )
 
 router.patch(
-  '/:timetableDayId',
-  param('timetableDayId').isInt({min: 1}),
+  '/:timetableLessonId',
+  param('timetableLessonId').isInt({min: 1}),
   handleValidationErrors,
   body('weekDay').isIn(weekDays).optional(),
   body('weekType').isIn(['all', 'high', 'low']).optional(),
@@ -60,18 +60,18 @@ router.patch(
   body('campusId').isInt({min: 1}).optional(),
   createUpdateRules,
   handleValidationErrors,
-  checkIfEntityExists('TimetableDay', 'timetableDayId', ['timetableId']),
-  isEntityInTimetable('TimetableDay'),
-  TimetableDayController.update
+  checkIfEntityExists('TimetableLesson', 'timetableLessonId', ['timetableId']),
+  isEntityInTimetable('TimetableLesson'),
+  TimetableLessonController.update
 )
 
 router.delete(
-  '/:timetableDayId',
-  param('timetableDayId').isInt({min: 1}),
+  '/:timetableLessonId',
+  param('timetableLessonId').isInt({min: 1}),
   handleValidationErrors,
-  checkIfEntityExists('TimetableDay', 'timetableDayId', ['timetableId']),
-  isEntityInTimetable('TimetableDay'),
-  TimetableDayController.delete
+  checkIfEntityExists('TimetableLesson', 'timetableLessonId', ['timetableId']),
+  isEntityInTimetable('TimetableLesson'),
+  TimetableLessonController.delete
 )
 
 module.exports = router

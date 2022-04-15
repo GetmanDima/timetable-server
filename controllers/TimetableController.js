@@ -18,13 +18,13 @@ class TimetableController extends RightController {
 
   static async getOne(req, res) {
     const timetableId = req.params['timetableId']
-    const days = req.query['days']
-    let dayInclude = {}
+    const lessons = req.query['lessons']
+    let lessonInclude = {}
 
-    if (days) {
-      dayInclude = {
+    if (lessons) {
+      lessonInclude = {
         include: {
-          model: db.TimetableDay,
+          model: db.TimetableLesson,
           attributes: {
             exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
           },
@@ -45,7 +45,7 @@ class TimetableController extends RightController {
           attributes: {
             exclude: ['rightId', 'creationType']
           },
-          ...dayInclude
+          ...lessonInclude
         },
       )
 
