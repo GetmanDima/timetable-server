@@ -46,7 +46,7 @@ class ClassTimeController extends RightController {
     try {
       const classTime = await db.ClassTime.create({number, startTime, endTime, timetableId})
 
-      res.header({Location: `/class-times/${classTime.id}`}).sendStatus(201)
+      res.header({Location: `/timetables/${timetableId}/class-times/${classTime.id}`}).sendStatus(201)
     } catch(_) {
       res.sendStatus(500)
     }

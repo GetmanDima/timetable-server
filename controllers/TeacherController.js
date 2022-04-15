@@ -44,7 +44,7 @@ class TeacherController extends RightController {
     try {
       const teacher = await db.Teacher.create({name, timetableId})
 
-      res.header({Location: `/class-times/${teacher.id}`}).sendStatus(201)
+      res.header({Location: `/timetables/${timetableId}/teachers/${teacher.id}`}).sendStatus(201)
     } catch(_) {
       res.sendStatus(500)
     }

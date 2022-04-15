@@ -45,7 +45,7 @@ class CampusController extends RightController {
     try {
       const campus = await db.Campus.create({name, address, timetableId})
 
-      res.header({Location: `/class-times/${campus.id}`}).sendStatus(201)
+      res.header({Location: `/timetables/${timetableId}/campuses/${campus.id}`}).sendStatus(201)
     } catch(_) {
       res.sendStatus(500)
     }

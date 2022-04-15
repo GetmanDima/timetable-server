@@ -44,7 +44,7 @@ class SubjectController extends RightController {
     try {
       const subject = await db.Subject.create({name, timetableId})
 
-      res.header({Location: `/class-times/${subject.id}`}).sendStatus(201)
+      res.header({Location: `/timetables/${timetableId}/subjects/${subject.id}`}).sendStatus(201)
     } catch(_) {
       res.sendStatus(500)
     }
