@@ -9,6 +9,7 @@ const checkEntityUserRights = require("../../middleware/checkEntityUserRights")
 const checkIfEntityExists = require("../../middleware/checkIfEntityExists")
 const GroupController = require("../../controllers/GroupController");
 const GroupInviteController = require("../../controllers/GroupInviteController");
+const TimetableController = require("../../controllers/TimetableController")
 
 const router = express.Router();
 
@@ -59,6 +60,15 @@ router.post(
   handleValidationErrors,
   checkIfEntityExists('Group', 'groupId'),
   GroupInviteController.create
+)
+
+router.get(
+  '/:groupId/timetables',
+  param('groupId').isInt({min: 1}),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkIfEntityExists('Group', 'groupId'),
+  TimetableController.getAllByGroupId
 )
 
 module.exports = router

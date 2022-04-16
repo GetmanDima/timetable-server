@@ -16,6 +16,28 @@ class TimetableController extends RightController {
     }
   }
 
+  static async getAllByGroupId(req, res) {
+    const groupId = req.params['groupId']
+    const limit = req.query['limit'] || 50
+    const offset = req.query['offset'] || 0
+    const search = req.query['search']
+
+    try {
+      const timetables = await super._getAllWithRightsCheck(
+        req.user,
+        'Timetable',
+        limit,
+        offset,
+        search,
+        {groupId: groupId}
+      )
+
+      res.json(timetables)
+    } catch (_) {
+      res.sendStatus(500)
+    }
+  }
+
   static async getOne(req, res) {
     const timetableId = req.params['timetableId']
     const lessons = req.query['lessons']
