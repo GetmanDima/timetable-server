@@ -1,22 +1,31 @@
 const db = require("../models");
 const RightController = require("./RightController");
+const {Op, Sequelize} = require("sequelize");
 
 class TimetableController extends RightController {
   static async getAll(req, res) {
     const limit = req.query['limit'] || 50
     const offset = req.query['offset'] || 0
     const search = req.query['search']
+    const parsed = parseInt(req.query['parsed'])
 
     try {
-      const timetables = await super._getAllWithRightsCheck(
+      const {count, rows: timetables} = await super._getAllWithRightsCheck(
         req.user,
         'Timetable',
         limit,
         offset,
-        {search}
+        {
+          search,
+          where: {
+            rightId: {
+              [parsed ? Op.in : Op.notIn]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
+            },
+          }
+        }
       )
 
-      res.json(timetables)
+      res.header("x-total-count", count).json(timetables)
     } catch (_) {
       res.sendStatus(500)
     }
