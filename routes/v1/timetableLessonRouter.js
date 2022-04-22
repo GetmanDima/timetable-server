@@ -1,5 +1,5 @@
 const express = require("express");
-const {param, body, query} = require("express-validator");
+const {param, body} = require("express-validator");
 const {weekDays} = require("../../helpers");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const checkIfEntityExists = require("../../middleware/checkIfEntityExists");
@@ -12,8 +12,6 @@ const router = express.Router({mergeParams: true});
 
 router.get(
   '/',
-  query("limit").isInt({min: 1, max: 140}).optional(),
-  query("offset").isInt({min: 0}).optional(),
   handleValidationErrors,
   TimetableLessonController.getAllByTimetableId
 )

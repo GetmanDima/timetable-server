@@ -3,8 +3,7 @@ const db = require("../models");
 class TimetableLessonController {
   static async getAllByTimetableId(req, res) {
     const timetableId = req.params['timetableId']
-    const limit = req.query['limit'] || 140
-    const offset = req.query['offset'] || 0
+    const limit = 350 // max 50 (50 * 7 = 350) lessons per day
 
     try {
       const lessons = await db.TimetableLesson.findAll({
@@ -19,7 +18,6 @@ class TimetableLessonController {
           {model: db.Campus}
         ],
         limit,
-        offset,
       })
 
       res.json(lessons)
