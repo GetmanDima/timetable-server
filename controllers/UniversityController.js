@@ -19,7 +19,7 @@ class UniversityController extends RightController {
           search,
           where: {
             rightId: {
-              [parsed ? Op.eq : Op.ne]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
+              [parsed ? Op.in : Op.notIn]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
             },
           },
           order: ['name']

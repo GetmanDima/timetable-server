@@ -21,7 +21,7 @@ class GroupController extends RightController {
           where: {
             universityId,
             rightId: {
-              [parsed ? Op.eq : Op.ne]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
+              [parsed ? Op.in : Op.notIn]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
             },
           }
         }
