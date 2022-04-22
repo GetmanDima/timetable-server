@@ -3,32 +3,49 @@ const {Op} = require("sequelize");
 const AppController = require("./AppController")
 
 class RightController extends AppController {
-  static async _getAllWithRightsCheck(user, modelName, limit, offset, search = '', additionalConditions = {}) {
+  static async _getAllWithRightsCheck(
+    user,
+    modelName,
+    limit,
+    offset,
+    params = {
+      search: '',
+      where: {},
+      order: []
+    },
+  ) {
+    const {search = '', where: paramWhere = {}, order = []} = params
     let where = {}
 
     if (search) {
       where = super._getSearchCondition(search)
     }
 
-    if (additionalConditions) {
-      where = {...where, ...additionalConditions}
+    if (paramWhere) {
+      where = {...where, ...paramWhere}
     }
 
-    const entities = await db[modelName].findAll({
+    const data = {
       where,
       include: RightController._includeRightsCheck(user, ['r']),
       limit,
       offset,
+      order,
       attributes: {
         exclude: ['rightId']
       },
-    })
+    }
 
-    return entities.map((entity) => {
-      const jsonEntity = entity.toJSON()
-      delete jsonEntity.Right
-      return jsonEntity
-    })
+    const {rows, count} = await db[modelName].findAndCountAll(data)
+
+    return {
+      count,
+      rows: rows.map((row) => {
+        const jsonEntity = row.toJSON()
+        delete jsonEntity.Right
+        return jsonEntity
+      })
+    }
   }
 
   static _includeRightsCheck(user, actions) {
@@ -56,7 +73,8 @@ class RightController extends AppController {
             required: true
           },
           required: true
-        }
+        },
+        required: true,
       }
     } else {
       return {
@@ -76,7 +94,9 @@ class RightController extends AppController {
             },
             attributes: []
           },
-        }
+          required: true
+        },
+        required: true,
       }
     }
   }

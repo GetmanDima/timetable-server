@@ -1,6 +1,5 @@
 const db = require("../models")
 const RightController = require("./RightController");
-const {Op, where} = require("sequelize");
 
 class MaterialController extends RightController {
   static async getAll(req, res) {
@@ -8,9 +7,9 @@ class MaterialController extends RightController {
     const offset = req.query['offset'] || 0
 
     try {
-      const materials = await super._getAllWithRightsCheck(req.user, 'Material', limit, offset)
+      const {count, rows: materials} = await super._getAllWithRightsCheck(req.user, 'Material', limit, offset)
 
-      res.json(materials)
+      res.header("x-total-count", count).json(materials)
     } catch (_) {
       res.sendStatus(500)
     }

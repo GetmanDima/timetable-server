@@ -1,5 +1,6 @@
 const db = require("../models")
 const RightController = require("./RightController");
+const {Op, Sequelize} = require("sequelize");
 
 class GroupController extends RightController {
   static async getAllByUniversityId(req, res) {
@@ -7,18 +8,26 @@ class GroupController extends RightController {
     const limit = req.query['limit'] || 50
     const offset = req.query['offset'] || 0
     const search = req.query['search']
+    const parsed = parseInt(req.query['parsed'])
 
     try {
-      const groups = await super._getAllWithRightsCheck(
+      const {count, rows: groups} = await super._getAllWithRightsCheck(
         req.user,
         'Group',
         limit,
         offset,
-        search,
-        {universityId}
+        {
+          search,
+          where: {
+            universityId,
+            rightId: {
+              [parsed ? Op.eq : Op.ne]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
+            },
+          }
+        }
       )
 
-      res.json(groups)
+      res.header("x-total-count", count).json(groups)
     } catch (_) {
       res.sendStatus(500)
     }

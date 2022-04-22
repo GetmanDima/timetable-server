@@ -7,9 +7,9 @@ class EventController extends RightController {
     const offset = req.query['offset'] || 0
 
     try {
-      const events = await super._getAllWithRightsCheck(req.user, 'Event', limit, offset)
+      const {count, rows: events} = await super._getAllWithRightsCheck(req.user, 'Event', limit, offset)
 
-      res.json(events)
+      res.header("x-total-count", count).json(events)
     } catch (_) {
       res.sendStatus(500)
     }

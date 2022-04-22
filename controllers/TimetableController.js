@@ -8,7 +8,13 @@ class TimetableController extends RightController {
     const search = req.query['search']
 
     try {
-      const timetables = await super._getAllWithRightsCheck(req.user, 'Timetable', limit, offset, search)
+      const timetables = await super._getAllWithRightsCheck(
+        req.user,
+        'Timetable',
+        limit,
+        offset,
+        {search}
+      )
 
       res.json(timetables)
     } catch (_) {
@@ -23,16 +29,18 @@ class TimetableController extends RightController {
     const search = req.query['search']
 
     try {
-      const timetables = await super._getAllWithRightsCheck(
+      const {count, rows: timetables} = await super._getAllWithRightsCheck(
         req.user,
         'Timetable',
         limit,
         offset,
-        search,
-        {groupId: groupId}
+        {
+          search,
+          where: {groupId: groupId}
+        }
       )
 
-      res.json(timetables)
+      res.header("x-total-count", count).json(timetables)
     } catch (_) {
       res.sendStatus(500)
     }

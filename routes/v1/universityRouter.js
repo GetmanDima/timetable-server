@@ -17,6 +17,7 @@ router.get(
   query("limit").isInt({min: 1, max: 50}).optional(),
   query("offset").isInt({min: 0}).optional(),
   query("search").isString().optional(),
+  query("parsed").isIn([0, 1]).optional(),
   handleValidationErrors,
   getAuthenticatedUser,
   UniversityController.getAll
@@ -60,6 +61,7 @@ router.get(
   query("limit").isInt({min: 1, max: 50}).optional(),
   query("offset").isInt({min: 0}).optional(),
   query("search").isString().optional(),
+  query("parsed").isIn([0, 1]).optional(),
   handleValidationErrors,
   getAuthenticatedUser,
   checkIfEntityExists('University', 'universityId'),
