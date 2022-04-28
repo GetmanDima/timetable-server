@@ -7,7 +7,17 @@ class TimetableController extends RightController {
     const limit = req.query['limit'] || 50
     const offset = req.query['offset'] || 0
     const search = req.query['search']
-    const parsed = parseInt(req.query['parsed'])
+    const parsed = req.query['parsed']
+
+    let where = {}
+
+    if (parsed !== undefined) {
+      where = {
+        rightId: {
+          [parseInt(parsed) ? Op.in : Op.notIn]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
+        }
+      }
+    }
 
     try {
       const {count, rows: timetables} = await super._getAllWithRightsCheck(
@@ -17,11 +27,7 @@ class TimetableController extends RightController {
         offset,
         {
           search,
-          where: {
-            rightId: {
-              [parsed ? Op.in : Op.notIn]: Sequelize.literal('(SELECT "rightId" FROM "ParsedData")')
-            },
-          }
+          where,
         }
       )
 
