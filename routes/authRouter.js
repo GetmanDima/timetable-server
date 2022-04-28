@@ -3,6 +3,7 @@ const {body} = require("express-validator");
 const db = require("../models");
 const AuthController = require("../controllers/AuthController");
 const checkValidationErrors = require("../middleware/handleValidationErrors");
+const {nameRules} = require("../validation/register");
 
 const routerWrapper = (refreshTokenInBody) => {
   const router = express.Router();
@@ -25,8 +26,7 @@ const routerWrapper = (refreshTokenInBody) => {
       });
     }),
     body('password').isLength({min: 3}),
-    body('firstName').isLength({min: 1}).isAlpha().optional(),
-    body('lastName').isLength({min: 1}).isAlpha().optional(),
+    ...nameRules,
     checkValidationErrors,
     AuthController.registerLeader
   );
@@ -41,8 +41,7 @@ const routerWrapper = (refreshTokenInBody) => {
       });
     }),
     body('password').isLength({min: 3}),
-    body('firstName').isLength({min: 1}).isAlpha().optional(),
-    body('lastName').isLength({min: 1}).isAlpha().optional(),
+    ...nameRules,
     body('inviteCode').notEmpty(),
     checkValidationErrors,
     AuthController.registerStudent
