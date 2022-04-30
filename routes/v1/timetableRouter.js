@@ -2,15 +2,16 @@ const express = require("express");
 const {param, body, query} = require("express-validator");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const isAuthenticated = require("../../middleware/isAuthenticated");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
 const getUserIfAuthenticated = require("../../middleware/getUserIfAuthenticated");
 const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
+const {checkChildRouterUserRights} = require("../../validation/timetable");
 const TimetableController = require("../../controllers/TimetableController");
 const timetableLessonRouter = require("./timetableLessonRouter")
 const classTimeRouter = require("./classTimeRouter")
 const subjectRouter = require("./subjectRouter")
 const teacherRouter = require("./teacherRouter")
 const campusRouter = require("./teacherRouter")
+const weekTypeRouter = require("./weekTypeRouter")
 
 const router = express.Router();
 
@@ -28,7 +29,6 @@ router.get(
 router.post(
   '/',
   isAuthenticated,
-  userBelongsToGroup(true),
   body('name').isString().notEmpty(),
   body('personal').isBoolean().optional(),
   handleValidationErrors,
@@ -73,7 +73,7 @@ router.use(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  checkChildRouterUserRights,
   timetableLessonRouter
 )
 
@@ -82,7 +82,7 @@ router.use(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  checkChildRouterUserRights,
   classTimeRouter
 )
 
@@ -91,7 +91,7 @@ router.use(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  checkChildRouterUserRights,
   subjectRouter
 )
 
@@ -100,7 +100,7 @@ router.use(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  checkChildRouterUserRights,
   teacherRouter
 )
 
@@ -109,8 +109,17 @@ router.use(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  checkEntityUserRights('Timetable', 'timetableId', ['r']),
+  checkChildRouterUserRights,
   campusRouter
+)
+
+router.use(
+  '/:timetableId/week-types',
+  param('timetableId').isInt({min: 1}),
+  handleValidationErrors,
+  getUserIfAuthenticated,
+  checkChildRouterUserRights,
+  weekTypeRouter
 )
 
 module.exports = router

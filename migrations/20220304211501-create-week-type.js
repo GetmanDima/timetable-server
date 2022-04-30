@@ -1,7 +1,7 @@
 'use strict';
 module.exports = {
   async up(queryInterface, Sequelize) {
-    await queryInterface.createTable('Timetables', {
+    await queryInterface.createTable('WeekTypes', {
       id: {
         allowNull: false,
         autoIncrement: true,
@@ -9,27 +9,15 @@ module.exports = {
         type: Sequelize.INTEGER
       },
       name: {
-        allowNull: false,
         type: Sequelize.STRING
       },
-      groupId: {
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Groups'
-        },
-      },
-      rightId: {
+      timetableId: {
         allowNull: false,
-        type: Sequelize.INTEGER,
-        references: {
-          model: 'Rights'
-        },
-      },
-      parentId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Timetables'
         },
+        onDelete: 'CASCADE'
       },
       createdAt: {
         allowNull: false,
@@ -42,6 +30,6 @@ module.exports = {
     });
   },
   async down(queryInterface, Sequelize) {
-    await queryInterface.dropTable('Timetables');
+    await queryInterface.dropTable('WeekTypes');
   }
 };

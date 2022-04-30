@@ -12,6 +12,7 @@ class TimetableLessonController {
           exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
         },
         include: [
+          {model: db.WeekType},
           {model: db.ClassTime},
           {model: db.Teacher},
           {model: db.Subject},
@@ -59,12 +60,12 @@ class TimetableLessonController {
   static async create(req, res) {
     const timetableId = req.params['timetableId']
     const weekDay = req.body['weekDay']
-    const weekType = req.body['weekType']
     const format = req.body['format']
     const room = req.body['room']
     const classType = req.body['classType']
     const activeFromDate = req.body['activeFromDate']
     const activeToDate = req.body['activeToDate']
+    const weekTypeId = req.body['weekTypeId']
     const classTimeId = req.body['classTimeId']
     const subjectId = req.body['subjectId']
     const teacherId = req.body['teacherId']
@@ -72,8 +73,8 @@ class TimetableLessonController {
 
     try {
       const lesson = await db.TimetableLesson.create({
-        weekDay, weekType, format, room, classType, activeFromDate, activeToDate,
-        classTimeId, subjectId, teacherId, campusId, timetableId
+        weekDay, format, room, classType, activeFromDate, activeToDate,
+        weekTypeId, classTimeId, subjectId, teacherId, campusId, timetableId
       })
 
       res.header({Location: `/timetables/${timetableId}/${lesson.id}`}).sendStatus(201)
@@ -84,12 +85,12 @@ class TimetableLessonController {
 
   static async update(req, res) {
     const weekDay = req.body['weekDay']
-    const weekType = req.body['weekType']
     const format = req.body['format']
     const room = req.body['room']
     const classType = req.body['classType']
     const activeFromDate = req.body['activeFromDate']
     const activeToDate = req.body['activeToDate']
+    const weekTypeId = req.body['weekTypeId']
     const classTimeId = req.body['classTimeId']
     const subjectId = req.body['subjectId']
     const teacherId = req.body['teacherId']
@@ -97,8 +98,8 @@ class TimetableLessonController {
 
     try {
       await req.TimetableLesson.update({
-        weekDay, weekType, format, room, classType, activeFromDate, activeToDate,
-        classTimeId, subjectId, teacherId, campusId
+        weekDay, format, room, classType, activeFromDate, activeToDate,
+        weekTypeId, classTimeId, subjectId, teacherId, campusId
       })
 
       res.sendStatus(200)

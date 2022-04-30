@@ -88,7 +88,7 @@ class TimetableController extends RightController {
         timetableId,
         {
           attributes: {
-            exclude: ['rightId', 'creationType']
+            exclude: ['rightId']
           },
           ...lessonInclude
         },
@@ -104,14 +104,14 @@ class TimetableController extends RightController {
     const name = req.body['name']
     let personal = req.body['personal']
 
-    if (req.user.type !== "leader") {
+    if (!req.user.groupId || req.user.type !== "leader") {
       personal = true
     }
 
     try {
       const timetable = await super._createWithRights(
         req.user, 'Timetable',
-        {name, creationType: "custom"},
+        {name},
         !personal
       )
 

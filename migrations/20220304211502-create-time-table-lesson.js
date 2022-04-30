@@ -12,9 +12,6 @@ module.exports = {
         allowNull: false,
         type: Sequelize.STRING
       },
-      weekType: {
-        type: Sequelize.STRING
-      },
       format: {
         type: Sequelize.STRING
       },
@@ -29,6 +26,12 @@ module.exports = {
       },
       activeToDate: {
         type: Sequelize.DATE
+      },
+      weekTypeId: {
+        type: Sequelize.INTEGER,
+        references: {
+          model: 'WeekTypes'
+        },
       },
       classTimeId: {
         type: Sequelize.INTEGER,
