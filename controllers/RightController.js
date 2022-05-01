@@ -112,9 +112,10 @@ class RightController extends AppController {
     let studentGroupRole
 
     if (withStudentGroupRole) {
-      studentGroupRole = await db.Role.findOne(
-        {name: `student_group_${user.groupId}`}
-      )
+      studentGroupRole = await db.Role.findOne({
+        where: {name: `student_group_${user.groupId}`},
+        attributes: ['id']
+      })
 
       if (!studentGroupRole) {
         throw `Not found student_group_${user.groupId} role`
