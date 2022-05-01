@@ -8,9 +8,6 @@ class TimetableLessonController {
     try {
       const lessons = await db.TimetableLesson.findAll({
         where: {timetableId},
-        attributes: {
-          exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
-        },
         include: [
           {model: db.WeekType},
           {model: db.ClassTime},
@@ -35,9 +32,6 @@ class TimetableLessonController {
       const lesson = await db.TimetableLesson.findByPk(
         timetableLessonId,
         {
-          attributes: {
-            exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
-          },
           include: [
             {model: db.ClassTime},
             {model: db.Teacher},
