@@ -16,6 +16,7 @@ module.exports = (sequelize, DataTypes) => {
   }
   WeekType.init({
     name: DataTypes.STRING,
+    activePeriods: DataTypes.JSON,
     timetableId: DataTypes.INTEGER
   }, {
     sequelize,

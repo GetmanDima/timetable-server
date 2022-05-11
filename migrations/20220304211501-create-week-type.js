@@ -11,6 +11,9 @@ module.exports = {
       name: {
         type: Sequelize.STRING
       },
+      activePeriods: {
+        type: Sequelize.JSON
+      },
       timetableId: {
         allowNull: false,
         type: Sequelize.INTEGER,
