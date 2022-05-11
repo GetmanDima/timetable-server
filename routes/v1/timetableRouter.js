@@ -40,7 +40,19 @@ router.get(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  query('lessons').isBoolean().optional(),
+  query('include').isJSON().custom((json) => {
+    const value = JSON.parse(json)
+
+    if (!value) {
+      return Promise.resolve()
+    }
+
+    if (!Array.isArray(value)) {
+      return Promise.reject()
+    }
+
+    return Promise.resolve()
+  }).optional(),
   handleValidationErrors,
   checkEntityUserRights('Timetable', 'timetableId', ['r']),
   TimetableController.getOne

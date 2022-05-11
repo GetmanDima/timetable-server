@@ -12,6 +12,10 @@ module.exports = (sequelize, DataTypes) => {
     static associate(models) {
       this.belongsTo(models.Right, {foreignKey: 'rightId'})
       this.belongsTo(models.Group, {foreignKey: 'groupId'})
+      this.hasMany(models.WeekType, {foreignKey: "timetableId"})
+      this.hasMany(models.ClassTime, {foreignKey: "timetableId"})
+      this.hasMany(models.Teacher, {foreignKey: "timetableId"})
+      this.hasMany(models.Subject, {foreignKey: "timetableId"})
       this.hasMany(models.TimetableLesson, {foreignKey: 'timetableId'})
     }
   }

@@ -63,24 +63,18 @@ class TimetableController extends RightController {
 
   static async getOne(req, res) {
     const timetableId = req.params['timetableId']
-    const lessons = req.query['lessons']
-    let lessonInclude = {}
+    const jsonQueryIncludes = req.query['include']
+    let includes = []
 
-    if (lessons) {
-      lessonInclude = {
-        include: {
-          model: db.TimetableLesson,
-          attributes: {
-            exclude: ['classTimeId', 'subjectId', 'teacherId', 'campusId']
-          },
-          include: [
-            {model: db.ClassTime},
-            {model: db.Teacher},
-            {model: db.Subject},
-            {model: db.Campus}
-          ]
-        },
-      }
+    if (jsonQueryIncludes) {
+      const queryIncludes = JSON.parse(jsonQueryIncludes)
+      const modelNames = ['WeekType', 'ClassTime', 'Teacher', 'Subject']
+      includes = modelNames
+        .filter(modelName => queryIncludes.find((include) => include === modelName))
+        .map(modelName => ({
+          model: db[modelName],
+          separate: true,
+        }))
     }
 
     try {
@@ -90,7 +84,7 @@ class TimetableController extends RightController {
           attributes: {
             exclude: ['rightId']
           },
-          ...lessonInclude
+          include: includes
         },
       )
 
