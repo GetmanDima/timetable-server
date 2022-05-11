@@ -3,11 +3,18 @@ const db = require("../models");
 class TimetableLessonController {
   static async getAllByTimetableId(req, res) {
     const timetableId = req.params['timetableId']
+    const weekDay = req.query['weekDay']
     const limit = 350 // max 50 (50 * 7 = 350) lessons per day
+
+    const where = {timetableId}
+
+    if (weekDay) {
+      where.weekDay = weekDay
+    }
 
     try {
       const lessons = await db.TimetableLesson.findAll({
-        where: {timetableId},
+        where,
         include: [
           {model: db.WeekType},
           {model: db.ClassTime},

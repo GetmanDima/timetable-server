@@ -1,5 +1,5 @@
 const express = require("express");
-const {param, body} = require("express-validator");
+const {param, body, query} = require("express-validator");
 const {weekDays} = require("../../helpers");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const checkIfEntityExists = require("../../middleware/checkIfEntityExists");
@@ -12,13 +12,14 @@ const router = express.Router({mergeParams: true});
 
 router.get(
   '/',
+  query("weekDay").toLowerCase().isIn(weekDays).optional(),
   handleValidationErrors,
   TimetableLessonController.getAllByTimetableId
 )
 
 router.post(
   '/',
-  body('weekDay').isIn(weekDays).notEmpty(),
+  body('weekDay').toLowerCase().isIn(weekDays).notEmpty(),
   body('format').isString().optional(),
   body('room').isString().optional(),
   body('classType').isString().optional(),

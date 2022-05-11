@@ -43,4 +43,4 @@ exports.getRoleRightActions = (roleRights) => {
   return roleRights.map((roleRight) => roleRight.action)
 }
 
-exports.weekDays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+exports.weekDays = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
