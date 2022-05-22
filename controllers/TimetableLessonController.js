@@ -4,6 +4,7 @@ class TimetableLessonController {
   static async getAllByTimetableId(req, res) {
     const timetableId = req.params['timetableId']
     const weekDay = req.query['weekDay']
+    const jsonQueryIncludes = req.query['include']
     const limit = 350 // max 50 (50 * 7 = 350) lessons per day
 
     const where = {timetableId}
@@ -12,16 +13,22 @@ class TimetableLessonController {
       where.weekDay = weekDay
     }
 
+    let includes = []
+
+    if (jsonQueryIncludes) {
+      const queryIncludes = JSON.parse(jsonQueryIncludes)
+      const modelNames = ['WeekType', 'ClassTime', 'Teacher', 'Subject']
+      includes = modelNames
+        .filter(modelName => queryIncludes.find((include) => include === modelName))
+        .map(modelName => ({
+          model: db[modelName],
+        }))
+    }
+
     try {
       const lessons = await db.TimetableLesson.findAll({
         where,
-        include: [
-          {model: db.WeekType},
-          {model: db.ClassTime},
-          {model: db.Teacher},
-          {model: db.Subject},
-          {model: db.Campus}
-        ],
+        include: includes,
         limit,
       })
 

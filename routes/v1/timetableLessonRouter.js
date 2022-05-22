@@ -13,6 +13,19 @@ const router = express.Router({mergeParams: true});
 router.get(
   '/',
   query("weekDay").toLowerCase().isIn(weekDays).optional(),
+  query('include').isJSON().custom((json) => {
+    const value = JSON.parse(json)
+
+    if (!value) {
+      return Promise.resolve()
+    }
+
+    if (!Array.isArray(value)) {
+      return Promise.reject()
+    }
+
+    return Promise.resolve()
+  }).optional(),
   handleValidationErrors,
   TimetableLessonController.getAllByTimetableId
 )
