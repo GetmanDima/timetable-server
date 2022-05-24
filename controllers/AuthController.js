@@ -19,6 +19,7 @@ class AuthController {
             id: user.id,
             firstName: user.firstName,
             lastName: user.lastName,
+            type: user.type,
             groupId: user.groupId,
             universityId: user.universityId
           }
