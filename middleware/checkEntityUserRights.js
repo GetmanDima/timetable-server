@@ -6,6 +6,10 @@ module.exports = (modelName, paramIdName, actions) => async (req, res, next) => 
   const tableName = db[modelName].tableName
   const user = req.user
 
+  if (user && user.type === "admin") {
+    next()
+  }
+
   try {
     const model = await db[modelName].findByPk(id, {attributes: ['id']})
 
