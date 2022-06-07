@@ -1,6 +1,7 @@
+const {Op, Sequelize} = require("sequelize");
+const crypto = require("crypto");
 const db = require("../models")
 const RightController = require("./RightController");
-const {Op, Sequelize} = require("sequelize");
 
 class GroupController extends RightController {
   static async getAllByUniversityId(req, res) {
@@ -47,6 +48,17 @@ class GroupController extends RightController {
     }
   }
 
+  static async getIdentifier(req, res) {
+    const groupId = req.params["groupId"]
+    try {
+      const identifier = await db.GroupIdentifier.findOne({groupId})
+
+      res.json(identifier)
+    } catch(_) {
+      res.sendStatus(500)
+    }
+  }
+
   static async create(req, res) {
     const universityId = req.params['universityId']
     const name = req.body['name']
@@ -70,6 +82,20 @@ class GroupController extends RightController {
           await req.user.addRoles([groupRole, universityRole], {transaction})
           await db.Role_Right.create({roleId: groupRole.id, rightId: group.rightId, action: 'r'}, {transaction})
           await db.Role_Right.create({roleId: universityRole.id, rightId: group.rightId, action: 'r'}, {transaction})
+
+          for (let i = 0; i < 5; i++) {
+            const identifier = crypto.randomBytes(8).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+            const existIdentifier = await db.GroupIdentifier.findOne({where: {identifier}})
+
+            if (existIdentifier) {
+              if (i === 4) {
+                throw new Error("5 attempts were used when selecting an identifier")
+              }
+            } else {
+              await db.GroupIdentifier.create({identifier, groupId: group.id}, {transaction})
+              break
+            }
+          }
         }
       )
 

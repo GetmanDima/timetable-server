@@ -97,7 +97,8 @@ class AuthController {
     const password = req.body['password']
     const firstName = req.body['firstName']
     const lastName = req.body['lastName']
-    const inviteCode = req.body['inviteCode']
+    const identifier = req.body['groupIdentifier']
+    const inviteCode = req.body['groupInviteCode']
 
     const passwordHash = hashPassword(password)
 
@@ -115,14 +116,24 @@ class AuthController {
       return res.sendStatus(400)
     }
 
+    const groupIdentifier = await db.GroupIdentifier.findOne({where: {identifier}})
+
+    if (!groupIdentifier) {
+      return res.sendStatus(400)
+    }
+
     const group = groupInviteCode.Group
-    const university = group.University
+    const university = groupInviteCode.Group.University
+
+    if (group.id !== groupIdentifier.groupId) {
+      return res.sendStatus(400)
+    }
 
     try {
       const allRole = await db.Role.findOne({where: {name: 'all'}})
       const usersRole = await db.Role.findOne({where: {name: 'users'}})
       const studentGroupRole = await db.Role.findOne({where: {name: `student_group_${group.id}`}})
-      const studentUniversityRole = await db.Role.findOne({where: {name: `student_university_${userUniversity.id}`}})
+      const studentUniversityRole = await db.Role.findOne({where: {name: `student_university_${university.id}`}})
 
       if (!allRole || !usersRole || !studentGroupRole || !studentUniversityRole) {
         return res.sendStatus(500)
@@ -131,7 +142,7 @@ class AuthController {
       const user = await db.sequelize.transaction(async (t) => {
         const user = await db.User.create({
           email, firstName, lastName, password: passwordHash,
-          type: 'student', groupId: groupInviteCode.Group.id
+          type: 'student', groupId: group.id, universityId: university.id
         })
 
         const userIndividualRole = await db.Role.create({

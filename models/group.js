@@ -15,6 +15,7 @@ module.exports = (sequelize, DataTypes) => {
       this.hasMany(models.User, {foreignKey: "groupId"})
       this.hasMany(models.GroupInviteCode, {foreignKey: "groupId"})
       this.hasMany(models.Material, {foreignKey: "groupId"})
+      this.hasOne(models.GroupIdentifier, {foreignKey: "groupId"})
     }
   }
   Group.init({

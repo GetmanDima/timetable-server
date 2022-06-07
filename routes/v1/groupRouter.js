@@ -41,6 +41,15 @@ router.patch(
 )
 
 router.get(
+  '/:groupId/identifier',
+  param('groupId').isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
+  checkEntityUserRights("Group", "groupId", ["w"]),
+  GroupController.getIdentifier
+)
+
+router.get(
   '/:groupId/invites',
   param('groupId').isInt({min: 1}),
   handleValidationErrors,

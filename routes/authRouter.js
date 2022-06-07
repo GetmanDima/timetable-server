@@ -42,7 +42,8 @@ const routerWrapper = (refreshTokenInBody) => {
     }),
     body('password').isLength({min: 3}),
     ...nameRules,
-    body('inviteCode').notEmpty(),
+    body('groupIdentifier').isString().notEmpty(),
+    body('groupInviteCode').isString().notEmpty(),
     checkValidationErrors,
     AuthController.registerStudent
   );
