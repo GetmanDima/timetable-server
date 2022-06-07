@@ -30,7 +30,7 @@ router.post(
   '/',
   isAuthenticated,
   body('name').isString().notEmpty(),
-  body('personal').isBoolean().optional(),
+  body('target').isIn(['personal', 'group']).optional(),
   handleValidationErrors,
   TimetableController.create
 )

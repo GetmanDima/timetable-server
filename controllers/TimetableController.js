@@ -96,17 +96,23 @@ class TimetableController extends RightController {
 
   static async create(req, res) {
     const name = req.body['name']
-    let personal = req.body['personal']
+    let target = req.body['target']
 
-    if (!req.user.groupId || req.user.type !== "leader") {
-      personal = true
+    if (!req.user.groupId || req.user.type !== "leader" || !target) {
+      target = "personal"
+    }
+
+    let data = {name}
+
+    if (target === "group") {
+      data.groupId = req.user.groupId
     }
 
     try {
       const timetable = await super._createWithRights(
         req.user, 'Timetable',
-        {name},
-        !personal
+        data,
+        target !== "personal",
       )
 
       res.header({Location: `/timetables/${timetable.id}`}).sendStatus(201)
