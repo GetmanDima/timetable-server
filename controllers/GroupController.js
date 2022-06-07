@@ -50,8 +50,9 @@ class GroupController extends RightController {
 
   static async getIdentifier(req, res) {
     const groupId = req.params["groupId"]
+
     try {
-      const identifier = await db.GroupIdentifier.findOne({groupId})
+      const identifier = await db.GroupIdentifier.findOne({where: {groupId}})
 
       res.json(identifier)
     } catch(_) {

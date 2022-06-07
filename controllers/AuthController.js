@@ -102,8 +102,16 @@ class AuthController {
 
     const passwordHash = hashPassword(password)
 
+    const groupIdentifier = await db.GroupIdentifier.findOne({where: {identifier}})
+
+    if (!groupIdentifier) {
+      return res.sendStatus(400)
+    }
+
+    const groupId = groupIdentifier.groupId
+
     const groupInviteCode = await db.GroupInviteCode.findOne({
-      where: {code: inviteCode},
+      where: {code: inviteCode, groupId},
       include: {
         model: db.Group,
         include: {
@@ -116,24 +124,13 @@ class AuthController {
       return res.sendStatus(400)
     }
 
-    const groupIdentifier = await db.GroupIdentifier.findOne({where: {identifier}})
-
-    if (!groupIdentifier) {
-      return res.sendStatus(400)
-    }
-
-    const group = groupInviteCode.Group
-    const university = groupInviteCode.Group.University
-
-    if (group.id !== groupIdentifier.groupId) {
-      return res.sendStatus(400)
-    }
+    const universityId = groupInviteCode.Group.University.id
 
     try {
       const allRole = await db.Role.findOne({where: {name: 'all'}})
       const usersRole = await db.Role.findOne({where: {name: 'users'}})
-      const studentGroupRole = await db.Role.findOne({where: {name: `student_group_${group.id}`}})
-      const studentUniversityRole = await db.Role.findOne({where: {name: `student_university_${university.id}`}})
+      const studentGroupRole = await db.Role.findOne({where: {name: `student_group_${groupId}`}})
+      const studentUniversityRole = await db.Role.findOne({where: {name: `student_university_${universityId}`}})
 
       if (!allRole || !usersRole || !studentGroupRole || !studentUniversityRole) {
         return res.sendStatus(500)
@@ -142,7 +139,7 @@ class AuthController {
       const user = await db.sequelize.transaction(async (t) => {
         const user = await db.User.create({
           email, firstName, lastName, password: passwordHash,
-          type: 'student', groupId: group.id, universityId: university.id
+          type: 'student', groupId, universityId
         })
 
         const userIndividualRole = await db.Role.create({
