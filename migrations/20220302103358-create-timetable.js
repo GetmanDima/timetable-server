@@ -17,6 +17,7 @@ module.exports = {
         references: {
           model: 'Groups'
         },
+        onDelete: "SET NULL"
       },
       rightId: {
         allowNull: false,
@@ -30,6 +31,7 @@ module.exports = {
         references: {
           model: 'Timetables'
         },
+        onDelete: "SET NULL"
       },
       createdAt: {
         allowNull: false,

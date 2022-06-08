@@ -21,6 +21,7 @@ module.exports = {
         references: {
           model: 'Users'
         },
+        onDelete: "CASCADE"
       },
       groupId: {
         allowNull: false,
@@ -28,12 +29,14 @@ module.exports = {
         references: {
           model: 'Groups'
         },
+        onDelete: "CASCADE"
       },
       subjectId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Subjects'
-        }
+        },
+        onDelete: "SET NULL"
       },
       rightId: {
         allowNull: false,

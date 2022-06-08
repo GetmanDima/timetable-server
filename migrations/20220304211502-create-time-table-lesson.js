@@ -32,30 +32,35 @@ module.exports = {
         references: {
           model: 'WeekTypes'
         },
+        onDelete: "SET NULL"
       },
       classTimeId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'ClassTimes'
         },
+        onDelete: "SET NULL"
       },
       subjectId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Subjects'
         },
+        onDelete: "SET NULL"
       },
       teacherId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Teachers'
         },
+        onDelete: "SET NULL"
       },
       campusId: {
         type: Sequelize.INTEGER,
         references: {
           model: 'Campuses'
         },
+        onDelete: "SET NULL"
       },
       timetableId: {
         allowNull: false,
