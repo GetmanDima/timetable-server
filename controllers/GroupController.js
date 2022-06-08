@@ -60,6 +60,22 @@ class GroupController extends RightController {
     }
   }
 
+  static async getUsers(req, res) {
+    const groupId = req.params["groupId"]
+
+    try {
+      const users = await db.User.findAll({
+        where: {groupId},
+        limit: 100,
+        attributes: {exclude: ['email', 'password', 'createdAt', 'updatedAt']}
+      })
+
+      res.json(users)
+    } catch(_) {
+      res.sendStatus(500)
+    }
+  }
+
   static async create(req, res) {
     const universityId = req.params['universityId']
     const name = req.body['name']

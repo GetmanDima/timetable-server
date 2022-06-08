@@ -72,6 +72,15 @@ router.post(
 )
 
 router.get(
+  '/:groupId/users',
+  param('groupId').isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
+  userBelongsToGroup(true),
+  GroupController.getUsers
+)
+
+router.get(
   '/:groupId/timetables',
   param('groupId').isInt({min: 1}),
   handleValidationErrors,
