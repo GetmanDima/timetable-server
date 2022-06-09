@@ -1,11 +1,7 @@
-module.exports = (belongs) => {
+module.exports = (groupId) => {
   return async (req, res, next) => {
-    if (belongs && req.user.groupId === null) {
-      return res.sendStatus(404)
-    }
-
-    if (!belongs && req.user.groupId !== null) {
-      return res.sendStatus(404)
+    if (!req.user || req.user.groupId !== parseInt(groupId)) {
+      return res.sendStatus(403)
     }
 
     next()

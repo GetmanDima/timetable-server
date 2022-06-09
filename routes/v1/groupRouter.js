@@ -1,5 +1,5 @@
 const express = require("express");
-const {param, body} = require("express-validator");
+const {param, body, query} = require("express-validator");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const isAuthenticated = require("../../middleware/isAuthenticated");
 const getUserIfAuthenticated = require("../../middleware/getUserIfAuthenticated");
@@ -18,11 +18,7 @@ router.get(
   param('groupId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  (req, res, next) => {
-    return req.user
-      ? userBelongsToGroup(true)(req, res, next)
-      : checkEntityUserRights("Group", "groupId", ["r"])(req, res, next)
-  },
+  checkEntityUserRights("Group", "groupId", ["r"]),
   GroupController.getOne
 )
 
@@ -31,12 +27,13 @@ router.patch(
   param('groupId').isInt({min: 1}),
   handleValidationErrors,
   isAuthenticated,
+  isUserLeader,
+  (req, res, next) => userBelongsToGroup(req.params.groupId)(req, res, next),
   body('name').isString().notEmpty().optional(),
   body('fullName').isString().notEmpty().optional(),
   body('courseNumber').isInt({min: 1, max: 20}).optional(),
   body('admissionYear').isInt({min: 2000, max: new Date().getFullYear()}).optional(),
   handleValidationErrors,
-  checkEntityUserRights("Group", "groupId", ["w"]),
   GroupController.update
 )
 
@@ -45,7 +42,8 @@ router.get(
   param('groupId').isInt({min: 1}),
   handleValidationErrors,
   isAuthenticated,
-  checkEntityUserRights("Group", "groupId", ["w"]),
+  isUserLeader,
+  (req, res, next) => userBelongsToGroup(req.params.groupId)(req, res, next),
   GroupController.getIdentifier
 )
 
@@ -55,7 +53,7 @@ router.get(
   handleValidationErrors,
   isAuthenticated,
   isUserLeader,
-  checkIfEntityExists('Group', 'groupId'),
+  (req, res, next) => userBelongsToGroup(req.params.groupId)(req, res, next),
   GroupInviteController.getAllByGroupId
 )
 
@@ -65,9 +63,9 @@ router.post(
   handleValidationErrors,
   isAuthenticated,
   isUserLeader,
+  (req, res, next) => userBelongsToGroup(req.params.groupId)(req, res, next),
   body('code').isString().notEmpty(),
   handleValidationErrors,
-  checkIfEntityExists('Group', 'groupId'),
   GroupInviteController.create
 )
 
@@ -76,8 +74,27 @@ router.get(
   param('groupId').isInt({min: 1}),
   handleValidationErrors,
   isAuthenticated,
-  userBelongsToGroup(true),
+  (req, res, next) => userBelongsToGroup(req.params.groupId)(req, res, next),
   GroupController.getUsers
+)
+
+router.delete(
+  '/:groupId/users/:userId',
+  param('groupId').isInt({min: 1}),
+  param('userId').isInt({min: 1}),
+  handleValidationErrors,
+  isAuthenticated,
+  isUserLeader,
+  (req, res, next) => userBelongsToGroup(req.params.groupId)(req, res, next),
+  checkIfEntityExists('Group', 'groupId', ['universityId']),
+  checkIfEntityExists('User', 'userId', ['type']),
+  (req, res, next) => {
+    if (req.User.type === "leader") {
+      return res.sendStatus(403)
+    }
+    next()
+  },
+  GroupController.deleteUser
 )
 
 router.get(
@@ -85,7 +102,10 @@ router.get(
   param('groupId').isInt({min: 1}),
   handleValidationErrors,
   getUserIfAuthenticated,
-  checkIfEntityExists('Group', 'groupId'),
+  query('limit').isInt({min: 1}).optional(),
+  query('offset').isInt({min: 0}).optional(),
+  handleValidationErrors,
+  checkEntityUserRights("Group", "groupId", ["r"]),
   TimetableController.getAllByGroupId
 )
 

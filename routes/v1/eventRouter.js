@@ -4,7 +4,7 @@ const handleValidationErrors = require("../../middleware/handleValidationErrors"
 const isAuthenticated = require("../../middleware/isAuthenticated");
 const isUserLeader = require("../../middleware/isUserLeader");
 const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
+const isUserInGroup = require("../../middleware/isUserInGroup");
 const EventController = require("../../controllers/EventController");
 
 const router = express.Router();
@@ -21,7 +21,7 @@ router.get(
 router.post(
   '/',
   isAuthenticated,
-  userBelongsToGroup(true),
+  isUserInGroup(true),
   isUserLeader,
   body('name').isString().notEmpty(),
   body('content').isString().optional(),

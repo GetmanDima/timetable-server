@@ -41,19 +41,15 @@ class TimetableController extends RightController {
     const groupId = req.params['groupId']
     const limit = req.query['limit'] || 50
     const offset = req.query['offset'] || 0
-    const search = req.query['search']
 
     try {
-      const {count, rows: timetables} = await super._getAllWithRightsCheck(
-        req.user,
-        'Timetable',
+      const {count, rows: timetables} = await db.Timetable.findAndCountAll({
         limit,
         offset,
-        {
-          search,
-          where: {groupId: groupId}
+        where: {
+          groupId
         }
-      )
+      })
 
       res.header("x-total-count", count).json(timetables)
     } catch (_) {

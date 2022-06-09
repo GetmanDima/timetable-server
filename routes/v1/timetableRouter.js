@@ -74,8 +74,6 @@ router.delete(
   param('timetableId').isInt({min: 1}),
   handleValidationErrors,
   isAuthenticated,
-  body('name').isString().notEmpty(),
-  handleValidationErrors,
   checkEntityUserRights('Timetable', 'timetableId', ['w']),
   TimetableController.delete
 )

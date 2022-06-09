@@ -4,7 +4,7 @@ const isAuthenticated = require("../../middleware/isAuthenticated");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const getAuthenticatedUser = require("../../middleware/getUserIfAuthenticated");
 const isUserLeader = require("../../middleware/isUserLeader");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
+const isUserInGroup = require("../../middleware/isUserInGroup");
 const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
 const checkIfEntityExists = require("../../middleware/checkIfEntityExists")
 const UniversityController = require("../../controllers/UniversityController");
@@ -27,7 +27,7 @@ router.post(
   '/',
   isAuthenticated,
   isUserLeader,
-  userBelongsToGroup(false),
+  isUserInGroup(false),
   body('name').notEmpty(),
   body('fullName').notEmpty().optional(),
   body('address').notEmpty().optional(),
@@ -64,7 +64,7 @@ router.get(
   query("parsed").isIn([0, 1]).optional(),
   handleValidationErrors,
   getAuthenticatedUser,
-  checkIfEntityExists('University', 'universityId'),
+  checkEntityUserRights('University', 'universityId', ['r']),
   GroupController.getAllByUniversityId
 )
 
@@ -73,13 +73,13 @@ router.post(
   param("universityId").isInt({min: 1}),
   handleValidationErrors,
   isAuthenticated,
-  userBelongsToGroup(false),
+  isUserInGroup(false),
   body('name').isString().notEmpty(),
   body('fullName').isString().notEmpty().optional(),
   body('courseNumber').isInt({min: 1, max: 20}).optional(),
   body('admissionYear').isInt({min: 2000, max: new Date().getFullYear()}).optional(),
   handleValidationErrors,
-  checkIfEntityExists('University', 'universityId'),
+  checkEntityUserRights('University', 'universityId', ['r']),
   GroupController.create
 )
 

@@ -48,34 +48,6 @@ class GroupController extends RightController {
     }
   }
 
-  static async getIdentifier(req, res) {
-    const groupId = req.params["groupId"]
-
-    try {
-      const identifier = await db.GroupIdentifier.findOne({where: {groupId}})
-
-      res.json(identifier)
-    } catch(_) {
-      res.sendStatus(500)
-    }
-  }
-
-  static async getUsers(req, res) {
-    const groupId = req.params["groupId"]
-
-    try {
-      const users = await db.User.findAll({
-        where: {groupId},
-        limit: 100,
-        attributes: {exclude: ['email', 'password', 'createdAt', 'updatedAt']}
-      })
-
-      res.json(users)
-    } catch(_) {
-      res.sendStatus(500)
-    }
-  }
-
   static async create(req, res) {
     const universityId = req.params['universityId']
     const name = req.body['name']
@@ -123,18 +95,74 @@ class GroupController extends RightController {
   }
 
   static async update(req, res) {
+    const groupId = req.params['groupId']
     const name = req.body['name']
     const fullName = req.body['fullName']
     const courseNumber = req.body['courseNumber']
     const admissionYear = req.body['admissionYear']
 
     try {
-      await req.Group.update(
-        {name, fullName, courseNumber, admissionYear}
+      await db.Group.update(
+        {name, fullName, courseNumber, admissionYear},
+        {where: {id: groupId}}
       )
 
       res.sendStatus(200)
     } catch (_) {
+      res.sendStatus(500)
+    }
+  }
+
+  static async getIdentifier(req, res) {
+    const groupId = req.params["groupId"]
+
+    try {
+      const identifier = await db.GroupIdentifier.findOne({where: {groupId}})
+
+      res.json(identifier)
+    } catch(_) {
+      res.sendStatus(500)
+    }
+  }
+
+  static async getUsers(req, res) {
+    const groupId = req.params["groupId"]
+
+    try {
+      const users = await db.User.findAll({
+        where: {groupId},
+        limit: 100,
+        attributes: {exclude: ['email', 'password', 'createdAt', 'updatedAt']}
+      })
+
+      res.json(users)
+    } catch(_) {
+      res.sendStatus(500)
+    }
+  }
+
+  static async deleteUser(req, res) {
+    const group = req.Group
+    const roleNames = [`student_group_${group.id}`, `student_university_${group.universityId}`]
+
+    try {
+      const userRoles = await db.Role.findAll({
+        where: {
+          name: {
+            [Op.in]: roleNames
+          }
+        },
+        attributes: ['id']
+      })
+
+      await db.sequelize.transaction(async (t) => {
+        await req.User.removeRoles(userRoles, {transaction: t})
+        req.User.groupId = null
+        await req.User.save({transaction: t})
+      })
+
+      return res.sendStatus(200)
+    } catch(_) {
       res.sendStatus(500)
     }
   }

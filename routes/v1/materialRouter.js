@@ -2,7 +2,7 @@ const express = require("express");
 const {param, body, query} = require("express-validator");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const isAuthenticated = require("../../middleware/isAuthenticated");
-const userBelongsToGroup = require("../../middleware/userBelongsToGroup");
+const isUserInGroup = require("../../middleware/isUserInGroup");
 const isUserLeader = require("../../middleware/isUserLeader");
 const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
 const uploadFileMiddleware = require("../../middleware/uploadFileMiddleware");
@@ -22,7 +22,7 @@ router.get(
 router.post(
   '/',
   isAuthenticated,
-  userBelongsToGroup(true),
+  isUserInGroup(true),
   isUserLeader,
   uploadFileMiddleware.array("files", 10),
   body('name').isString().notEmpty(),
