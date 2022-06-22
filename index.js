@@ -27,7 +27,7 @@ const corsOptionsDelegate = (req, callback) => {
 }
 
 app.use(cookieParser('secret key'))
-app.use(express.static('public'));
+app.use("/uploads", express.static('uploads'));
 app.use(cors(corsOptionsDelegate))
 app.use(bodyParser.json());
 app.use('/api', mainRouter);

@@ -1,3 +1,4 @@
+const {Op} = require("sequelize");
 const db = require("../models")
 const RightController = require("./RightController");
 
@@ -7,7 +8,21 @@ class MaterialController extends RightController {
     const offset = req.query['offset'] || 0
 
     try {
-      const {count, rows: materials} = await super._getAllWithRightsCheck(req.user, 'Material', limit, offset)
+      const data = {
+        include: [
+          RightController._includeRightsCheck(req.user, ['r']),
+          {
+            model: db.Subject
+          }
+        ],
+        limit,
+        offset,
+        attributes: {
+          exclude: ['rightId']
+        },
+      }
+
+      const {count, rows: materials} = await db.Material.findAndCountAll(data)
 
       res.header("x-total-count", count).json(materials)
     } catch (_) {
@@ -22,12 +37,17 @@ class MaterialController extends RightController {
       const material = await db.Material.findByPk(
         materialId,
         {
-          include: {
-            model: db.File,
-            attributes: {
-              exclude: ['path']
+          include: [
+            {
+              model: db.Subject
+            },
+            {
+              model: db.File,
+              attributes: {
+                exclude: ['path']
+              }
             }
-          }
+          ]
         }
       )
 
@@ -38,25 +58,40 @@ class MaterialController extends RightController {
   }
 
   static async create(req, res) {
+    const user = req.user
     const name = req.body['name']
     const content = req.body['content']
-    const files = req.files
-    const user = req.user
+    const fileIds = req.body['files']
+    let target = req.body['target']
+
+    if (!req.user.groupId || req.user.type !== "leader" || !target) {
+      target = "personal"
+    }
+
+    const data = {name, content, userId: user.id}
+
+    if (target === "group") {
+      data.groupId = user.groupId
+    }
 
     try {
+      const files = await db.File.findAll({
+        where: {
+          id: {
+            [Op.in]: fileIds
+          },
+          userId: req.user.id
+        }
+      })
+
       const material = await super._createWithRights(
         req.user,
         'Material',
-        {name, content, userId: user.id, groupId: user.groupId},
-        true,
-        [],
-        async (transaction, user, material) => {
-          const createdFiles = await db.File.bulkCreate(files.map((file) => {
-            return {name: file.filename, path: file.path, url: `/uploads/${file.filename}`}
-          }), {transaction})
-          await material.setFiles(createdFiles, {transaction})
-        }
+        data,
+        target === "group"
       )
+
+      await material.setFiles(files)
 
       res.header({Location: `/materials/${material.id}`}).sendStatus(201)
     } catch (_) {
@@ -67,9 +102,21 @@ class MaterialController extends RightController {
   static async update(req, res) {
     const name = req.body['name']
     const content = req.body['content']
+    const fileIds = req.body.files
+
+    const where = {userId: req.user.id}
+
+    if (fileIds) {
+      where.id = {
+        [Op.in]: fileIds
+      }
+    }
 
     try {
+      const files = await db.File.findAll({where})
+
       await req.Material.update({name, content})
+      await req.Material.setFiles(files)
 
       res.sendStatus(200)
     } catch (_) {
@@ -79,7 +126,6 @@ class MaterialController extends RightController {
 
   static async delete(req, res) {
     try {
-      await db.File.destroy({where: {materialId: req.Material.id}})
       await req.Material.destroy()
 
       res.sendStatus(200)

@@ -7,6 +7,7 @@ const groupRouter = require("./groupRouter");
 const timetableRouter = require("./timetableRouter");
 const eventRouter = require("./eventRouter");
 const materialRouter = require("./materialRouter");
+const fileRouter = require("./fileRouter");
 const groupInviteRouter = require("./groupInviteRouter");
 
 const router = express.Router();
@@ -19,6 +20,7 @@ router.use('/groups', groupRouter)
 router.use('/timetables', timetableRouter)
 router.use('/events', eventRouter)
 router.use('/materials', materialRouter)
+router.use('/files', fileRouter)
 router.use('/group-invites', groupInviteRouter)
 
 module.exports = router

@@ -2,11 +2,19 @@ const express = require("express");
 const {param, body, query} = require("express-validator");
 const handleValidationErrors = require("../../middleware/handleValidationErrors");
 const isAuthenticated = require("../../middleware/isAuthenticated");
-const isUserInGroup = require("../../middleware/isUserInGroup");
-const isUserLeader = require("../../middleware/isUserLeader");
 const checkEntityUserRights = require("../../middleware/checkEntityUserRights");
-const uploadFileMiddleware = require("../../middleware/uploadFileMiddleware");
 const MaterialController = require("../../controllers/MaterialController");
+
+const checkFileIds = (req, res, next) => {
+  if (req.body.files) {
+    req.body.files.forEach((fileId) => {
+      if (!Number.isInteger(fileId)) {
+        return res.sendStatus(400)
+      }
+    })
+  }
+  next()
+}
 
 const router = express.Router();
 
@@ -21,13 +29,13 @@ router.get(
 
 router.post(
   '/',
-  isAuthenticated,
-  isUserInGroup(true),
-  isUserLeader,
-  uploadFileMiddleware.array("files", 10),
   body('name').isString().notEmpty(),
   body('content').isString().optional(),
+  body('files').isArray().optional(),
+  body('target').isIn(['personal', 'group']).optional(),
   handleValidationErrors,
+  checkFileIds,
+  isAuthenticated,
   MaterialController.create
 )
 
@@ -42,13 +50,12 @@ router.get(
 
 router.patch(
   '/:materialId',
-  param('materialId').isInt({min: 1}),
-  handleValidationErrors,
-  isAuthenticated,
-  uploadFileMiddleware.array("files", 10),
-  body('name').isString().notEmpty().optional(),
+  body('name').isString().notEmpty(),
   body('content').isString().optional(),
+  body('files').isArray().optional(),
   handleValidationErrors,
+  checkFileIds,
+  isAuthenticated,
   checkEntityUserRights('Material', 'materialId', ['w']),
   MaterialController.update
 )

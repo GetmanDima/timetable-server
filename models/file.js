@@ -11,13 +11,15 @@ module.exports = (sequelize, DataTypes) => {
      */
     static associate(models) {
       this.belongsTo(models.Material, {foreignKey: "materialId"})
+      this.belongsTo(models.User, {foreignKey: "userId"})
     }
   }
   File.init({
     name: DataTypes.STRING,
     url: DataTypes.STRING,
     path: DataTypes.STRING,
-    materialId: DataTypes.INTEGER
+    materialId: DataTypes.INTEGER,
+    userId: DataTypes.INTEGER
   }, {
     sequelize,
     modelName: 'File',
