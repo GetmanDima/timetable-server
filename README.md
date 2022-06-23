@@ -4,3 +4,12 @@
 Планы развития проекта описаны в репозитории с клиентом.  
 Клиент: https://github.com/GetmanDima/timetable-client  
 Парсер: https://github.com/GetmanDima/timetable-server-parser  
+
+Запуск сервера:
+```
+npm start
+```
+или
+```
+npm run dev
+```
